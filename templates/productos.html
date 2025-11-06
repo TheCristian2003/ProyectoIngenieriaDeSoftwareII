@@ -1,0 +1,120 @@
+{% extends "index.html" %}
+
+{% block content %}
+<!-- Header Productos -->
+<section class="bg-light py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="h2">Todos Nuestros Productos</h1>
+                <p class="mb-0">Encuentra los mejores componentes de tecnología</p>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" id="buscador" class="form-control" placeholder="Buscar productos...">
+                    <button class="btn btn-primary" onclick="buscarProductos()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filtros -->
+<section class="py-3 bg-white border-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <select class="form-select" id="filtro-categoria" onchange="filtrarProductos()">
+                    <option value="">Todas las categorías</option>
+                    <option value="Procesadores">Procesadores</option>
+                    <option value="Tarjetas Gráficas">Tarjetas Gráficas</option>
+                    <option value="Memoria RAM">Memoria RAM</option>
+                    <option value="Almacenamiento">Almacenamiento</option>
+                    <option value="Placas Base">Placas Base</option>
+                    <option value="Fuentes Alimentación">Fuentes Alimentación</option>
+                    <option value="Monitores">Monitores</option>
+                    <option value="Periféricos">Periféricos</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filtro-precio" onchange="filtrarProductos()">
+                    <option value="">Todos los precios</option>
+                    <option value="0-100">Menos de $100</option>
+                    <option value="100-300">$100 - $300</option>
+                    <option value="300-500">$300 - $500</option>
+                    <option value="500-1000">Más de $500</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filtro-orden" onchange="filtrarProductos()">
+                    <option value="">Ordenar por</option>
+                    <option value="precio_asc">Precio: Menor a Mayor</option>
+                    <option value="precio_desc">Precio: Mayor a Menor</option>
+                    <option value="nombre_asc">Nombre: A-Z</option>
+                    <option value="nombre_desc">Nombre: Z-A</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltros()">
+                    <i class="fas fa-times me-2"></i>Limpiar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Lista de Productos -->
+<section class="py-5">
+    <div class="container">
+        <div class="row" id="lista-productos">
+            {% for producto in productos %}
+            <div class="col-lg-4 col-md-6 mb-4 producto-item" 
+                 data-categoria="{{ producto.categoria }}" 
+                 data-precio="{{ producto.precio }}"
+                 data-nombre="{{ producto.nombre.lower() }}">
+                <div class="card product-card h-100">
+                    <div class="position-relative">
+                        <div class="image-container">
+                            <img src="{{ url_for('static', filename='images/productos/' + producto.imagen) }}" 
+                                class="product-image" 
+                                alt="{{ producto.nombre }}"
+                                onerror="this.src='https://via.placeholder.com/250x150/ffffff/007bff?text=Imagen+No+Disponible'">
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-secondary mb-2">{{ producto.categoria }}</span>
+                        <h5 class="card-title">{{ producto.nombre }}</h5>
+                        <p class="card-text flex-grow-1">{{ producto.descripcion }}</p>
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="price h5">${{ producto.precio }}</span>
+                                <span class="text-muted">Stock: {{ producto.stock }}</span>
+                            </div>
+                            {% if producto.stock > 0 %}
+                            <button class="btn btn-primary w-100" onclick="agregarAlCarrito({{ producto.id }})">
+                                <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
+                            </button>
+                            {% else %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                <i class="fas fa-times me-2"></i>Sin Stock
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Mensaje cuando no hay productos -->
+        <div id="sin-resultados" class="text-center py-5" style="display: none;">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h3>No se encontraron productos</h3>
+            <p class="text-muted">Intenta con otros filtros de búsqueda</p>
+            <button class="btn btn-primary" onclick="limpiarFiltros()">Ver todos los productos</button>
+        </div>
+    </div>
+</section>
+{% endblock %}

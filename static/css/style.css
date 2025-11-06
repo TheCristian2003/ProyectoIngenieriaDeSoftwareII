@@ -1,0 +1,89 @@
+/* Estilos generales */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Mejoras para las cards de productos */
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+/* Contenedor de imagen con fondo blanco para que coincida */
+.image-container {
+    height: 200px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Imágenes que se adaptan perfectamente */
+.product-image {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Precio destacado */
+.price {
+    color: #198754;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* Características */
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Notificaciones */
+.alert.position-fixed {
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Input group mejorado */
+.input-group.input-group-sm {
+    width: 120px;
+}
+
+/* Imágenes en el carrito */
+.carrito-imagen {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+/* Badge destacado */
+.badge-destacado {
+    z-index: 10;
+}

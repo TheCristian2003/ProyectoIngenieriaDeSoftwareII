@@ -1,8 +1,11 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from functools import wraps
 from database import get_db_connection
-import json
+from auth import Auth
+import os
 
 app = Flask(__name__)
+app.secret_key = 'techstore_secret_key_2024'  # Clave para las sesiones
 
 @app.route('/')
 def index():
@@ -110,6 +113,98 @@ def agregar_mas_datos():
         return 'Datos extra agregados correctamente'
     
     return 'Error al agregar datos'
+
+
+# Rutas de autenticación
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        nombre = request.form['nombre']
+        apellido = request.form.get('apellido', '')
+        telefono = request.form.get('telefono', '')
+        
+        success, message = Auth.register_user(email, password, nombre, apellido, telefono)
+        
+        if success:
+            # Iniciar sesión automáticamente después del registro
+            success_login, user = Auth.login_user(email, password)
+            if success_login:
+                session['user_id'] = user['id']
+                session['user_email'] = user['email']
+                session['user_nombre'] = user['nombre']
+                session['user_rol'] = user['rol']
+                return redirect('/')
+            else:
+                return render_template('registro.html', error=message)
+        else:
+            return render_template('registro.html', error=message)
+    
+    return render_template('registro.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        success, result = Auth.login_user(email, password)
+        
+        if success:
+            user = result
+            session['user_id'] = user['id']
+            session['user_email'] = user['email']
+            session['user_nombre'] = user['nombre']
+            session['user_rol'] = user['rol']
+            return redirect('/')
+        else:
+            return render_template('login.html', error=result)
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+# Decorador para rutas que requieren login
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Decorador para rutas que requieren ser admin
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect('/login')
+        if session.get('user_rol') != 'admin':
+            return "Acceso denegado. Se requiere permisos de administrador.", 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Ruta de perfil de usuario
+@app.route('/perfil')
+@login_required
+def perfil():
+    user = Auth.get_user_by_id(session['user_id'])
+    return render_template('perfil.html', user=user)
+
+# Ruta de administración (solo para admins)
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    users = Auth.get_all_users()
+    return render_template('admin.html', users=users)
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

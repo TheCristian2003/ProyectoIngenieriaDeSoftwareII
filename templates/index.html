@@ -23,22 +23,59 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-home me-1"></i>Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/productos">
+                        <i class="fas fa-microchip me-1"></i>Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/carrito">
+                        <i class="fas fa-shopping-cart me-1"></i>Carrito 
+                        <span id="contador-carrito" class="badge bg-danger">0</span>
+                    </a>
+                </li>
+                
+                <!-- Estado de usuario -->
+                {% if session.user_id %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i>{{ session.user_nombre }}
+                        {% if session.user_rol == 'admin' %}
+                        <span class="badge bg-warning">Admin</span>
+                        {% endif %}
+                    </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/perfil">
+                                <i class="fas fa-id-card me-2"></i>Mi Perfil
+                            </a></li>
+                            {% if session.user_rol == 'admin' %}
+                            <li><a class="dropdown-item" href="/admin">
+                                <i class="fas fa-cog me-2"></i>Panel Admin
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="fas fa-home me-1"></i>Inicio
+                        <a class="nav-link" href="/login">
+                            <i class="fas fa-sign-in-alt me-1"></i>Ingresar
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/productos">
-                            <i class="fas fa-microchip me-1"></i>Productos
+                        <a class="nav-link" href="/registro">
+                            <i class="fas fa-user-plus me-1"></i>Registrarse
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/carrito">
-                            <i class="fas fa-shopping-cart me-1"></i>Carrito 
-                            <span id="contador-carrito" class="badge bg-danger">0</span>
-                        </a>
-                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

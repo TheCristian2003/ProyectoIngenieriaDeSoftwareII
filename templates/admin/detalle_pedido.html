@@ -1,0 +1,234 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-clipboard-list me-2"></i>
+            Pedido {{ pedido.numero_pedido }}
+        </h1>
+        <div>
+            <a href="/admin/pedidos" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Pedidos
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Información del Pedido -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Información del Pedido</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown">
+                            Cambiar Estado
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" 
+                                   href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/confirmado">
+                                <i class="fas fa-check text-success me-2"></i>Confirmar
+                            </a></li>
+                            <li><a class="dropdown-item" 
+                                   href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/en_proceso">
+                                <i class="fas fa-cog text-primary me-2"></i>En Proceso
+                            </a></li>
+                            <li><a class="dropdown-item" 
+                                   href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/enviado">
+                                <i class="fas fa-shipping-fast text-info me-2"></i>Enviado
+                            </a></li>
+                            <li><a class="dropdown-item" 
+                                   href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/entregado">
+                                <i class="fas fa-box text-success me-2"></i>Entregado
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" 
+                                   href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/cancelado">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Número de Pedido:</th>
+                                    <td><strong>{{ pedido.numero_pedido }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Cliente:</th>
+                                    <td>
+                                        <strong>{{ pedido.usuario_nombre }}</strong><br>
+                                        <small class="text-muted">{{ pedido.usuario_email }}</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha:</th>
+                                    <td>{{ pedido.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Método de Pago:</th>
+                                    <td>{{ pedido.metodo_pago|replace('_', ' ')|title }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Estado Actual:</th>
+                                    <td>
+                                        {% set estado_badge = {
+                                            'pendiente': 'warning',
+                                            'confirmado': 'info',
+                                            'en_proceso': 'primary',
+                                            'enviado': 'success', 
+                                            'entregado': 'success',
+                                            'cancelado': 'danger'
+                                        } %}
+                                        <span class="badge bg-{{ estado_badge[pedido.estado] }} fs-6">
+                                            {{ pedido.estado|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Última Actualización:</th>
+                                    <td>{{ pedido.updated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total:</th>
+                                    <td class="fs-5 fw-bold">${{ "%.2f"|format(pedido.total) }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Dirección de Envío -->
+                    <h6 class="mt-4">Dirección de Envío:</h6>
+                    <div class="border rounded p-3 bg-light">
+                        {{ pedido.direccion_envio|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos del Pedido -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Productos del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pedido.items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ url_for('static', filename='images/productos/' + item.imagen) }}" 
+                                                 class="img-thumbnail me-3" 
+                                                 style="width: 50px; height: 50px; object-fit: contain;"
+                                                 onerror="this.src='https://via.placeholder.com/50x50/007bff/ffffff?text=P'"
+                                                 alt="{{ item.nombre }}">
+                                            <div>
+                                                <strong>{{ item.nombre }}</strong><br>
+                                                <small class="text-muted">{{ item.categoria }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ "%.2f"|format(item.precio_unitario) }}</td>
+                                    <td>{{ item.cantidad }}</td>
+                                    <td>${{ "%.2f"|format(item.subtotal) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen y Acciones -->
+        <div class="col-md-4">
+            <!-- Resumen de Totales -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen de Totales</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Subtotal:</th>
+                            <td>${{ "%.2f"|format(pedido.subtotal) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Envío:</th>
+                            <td>${{ "%.2f"|format(pedido.envio) }}</td>
+                        </tr>
+                        <tr>
+                            <th>Descuento:</th>
+                            <td class="text-success">-${{ "%.2f"|format(pedido.descuento) }}</td>
+                        </tr>
+                        <tr class="fw-bold fs-5 border-top">
+                            <th>Total:</th>
+                            <td>${{ "%.2f"|format(pedido.total) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/confirmado" 
+                           class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Confirmar Pedido
+                        </a>
+                        <a href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/en_proceso" 
+                           class="btn btn-primary">
+                            <i class="fas fa-cog me-2"></i>Marcar en Proceso
+                        </a>
+                        <a href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/enviado" 
+                           class="btn btn-info">
+                            <i class="fas fa-shipping-fast me-2"></i>Marcar Enviado
+                        </a>
+                        <a href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/entregado" 
+                           class="btn btn-success">
+                            <i class="fas fa-box me-2"></i>Marcar Entregado
+                        </a>
+                        <a href="/admin/pedidos/actualizar-estado/{{ pedido.id }}/cancelado" 
+                           class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Cancelar Pedido
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6>Información del Sistema</h6>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Este pedido es parte de una simulación para fines educativos.
+                        No se han procesado pagos reales.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

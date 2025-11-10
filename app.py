@@ -543,13 +543,15 @@ def checkout():
     # Calcular totales
     subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
     envio = 0 if subtotal > 200 else 15
-    total = subtotal + envio
+    descuento = 0  # ← AGREGAR ESTA LÍNEA
+    total = subtotal + envio - descuento
     
     return render_template('checkout.html', 
                          carrito=carrito, 
                          direcciones=direcciones,
                          subtotal=subtotal,
                          envio=envio,
+                         descuento=descuento,  # ← AGREGAR ESTA LÍNEA
                          total=total)
 
 @app.route('/procesar-pedido', methods=['POST'])
@@ -611,7 +613,56 @@ def detalle_pedido(pedido_id):
     pedido = Pedidos.obtener_detalle_pedido(pedido_id, session['user_id'])
     if not pedido:
         return "Pedido no encontrado", 404
-    return render_template('detalle_pedido.html', pedido=pedido)
+    
+    # Crear una copia segura del pedido
+    pedido_data = {
+        'id': pedido['id'],
+        'numero_pedido': pedido['numero_pedido'],
+        'estado': pedido['estado'],
+        'subtotal': pedido['subtotal'],
+        'envio': pedido['envio'],
+        'descuento': pedido['descuento'],
+        'total': pedido['total'],
+        'direccion_envio': pedido['direccion_envio'],
+        'metodo_pago': pedido['metodo_pago'],
+        'created_at': pedido['created_at'],
+        'updated_at': pedido['updated_at'],
+        'productos': pedido.get('items', [])
+    }
+    
+    return render_template('detalle_pedido.html', pedido=pedido_data)
+
+@app.route('/producto/<int:producto_id>')
+def detalle_producto(producto_id):
+    """Página de detalle individual de producto"""
+    conn = get_db_connection()
+    producto = None
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM productos WHERE id = %s', (producto_id,))
+        producto = cursor.fetchone()
+        conn.close()
+    
+    if not producto:
+        return "Producto no encontrado", 404
+    
+    # Obtener productos relacionados (misma categoría)
+    conn = get_db_connection()
+    productos_relacionados = []
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT * FROM productos 
+            WHERE categoria = %s AND id != %s 
+            LIMIT 4
+        ''', (producto['categoria'], producto_id))
+        productos_relacionados = cursor.fetchall()
+        conn.close()
+    
+    return render_template('detalle_producto.html', 
+                         producto=producto, 
+                         productos_relacionados=productos_relacionados)
 
 # =============================================
 # RUTAS DE ADMIN PARA PEDIDOS

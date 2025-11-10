@@ -85,7 +85,11 @@
                     </div>
                     <div class="card-body d-flex flex-column">
                         <span class="badge bg-secondary mb-2">{{ producto.categoria }}</span>
-                        <h5 class="card-title">{{ producto.nombre }}</h5>
+                        <h5 class="card-title">
+                            <a href="/producto/{{ producto.id }}" class="text-decoration-none text-dark">
+                                {{ producto.nombre[:40] }}{% if producto.nombre|length > 40 %}...{% endif %}
+                            </a>
+                        </h5>
                         <p class="card-text flex-grow-1">{{ producto.descripcion }}</p>
                         <div class="mt-auto">
                             <div class="d-flex justify-content-between align-items-center mb-2">

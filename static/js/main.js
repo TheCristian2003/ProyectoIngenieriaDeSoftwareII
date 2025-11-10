@@ -300,20 +300,28 @@ function aplicarDescuento() {
 }
 
 // Simular compra
-function simularCompra() {
-    if (carrito.length === 0) {
-        mostrarNotificacion('⚠️ Tu carrito está vacío');
+// Función para proceder al pago (desde la página del carrito)
+function procederAlPago() {
+    if (!usuarioLogueado()) {
+        mostrarNotificacion('⚠️ Inicia sesión para proceder al pago', 'warning');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
         return;
     }
-    
-    const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-    
-    alert(`✅ ¡Compra simulada exitosamente!\n\nTotal de productos: ${carrito.reduce((sum, item) => sum + item.cantidad, 0)}\nTotal: $${total.toFixed(2)}\n\nGracias por probar TechStore.`);
-    vaciarCarrito();
+
+    // Verificar que el carrito no esté vacío
+    const carritoVacio = document.getElementById('carrito-vacio');
+    if (carritoVacio && carritoVacio.style.display !== 'block') {
+        window.location.href = '/checkout';
+    } else {
+        mostrarNotificacion('❌ Tu carrito está vacío', 'danger');
+    }
 }
 
+// Función para el botón "Proceder al Pago" en el resumen del carrito
 function procederPago() {
-    simularCompra();
+    procederAlPago();
 }
 
 // Funciones para filtros y búsqueda (mantenemos las anteriores)

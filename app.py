@@ -704,7 +704,24 @@ def api_detalle_carrito_db():
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+
+    # Detectar si se está ejecutando en Render o localmente
+    en_render = os.environ.get("RENDER", "False") == "True"
+
+    # Configurar el puerto
+    port = int(os.environ.get("PORT", 5000))
+
+    # Determinar modo debug
+    debug_mode = not en_render
+
+    # Mensaje informativo
+    if en_render:
+        print("🌐 Iniciando aplicación Flask en Render (modo producción)")
+    else:
+        print("🟢 Iniciando aplicación Flask en modo local (debug activado)")
+
+    # Ejecutar la app
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+

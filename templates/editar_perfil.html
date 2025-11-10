@@ -1,0 +1,82 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <!-- Mismo sidebar que en perfil.html -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Mi Cuenta</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/perfil" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i>Mi Perfil
+                    </a>
+                    <a href="/perfil/editar" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="/perfil/cambiar-password" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </a>
+                    <a href="/perfil/direcciones" class="list-group-item list-group-item-action">
+                        <i class="fas fa-map-marker-alt me-2"></i>Mis Direcciones
+                    </a>
+                    {% if session.user_rol == 'admin' %}
+                    <a href="/admin" class="list-group-item list-group-item-action text-warning">
+                        <i class="fas fa-cog me-2"></i>Panel de Administración
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Perfil</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       value="{{ user.nombre }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apellido" class="form-label">Apellido</label>
+                                <input type="text" class="form-control" id="apellido" name="apellido" 
+                                       value="{{ user.apellido or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" disabled>
+                            <div class="form-text">El email no se puede cambiar</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                   value="{{ user.telefono or '' }}">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="/perfil" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

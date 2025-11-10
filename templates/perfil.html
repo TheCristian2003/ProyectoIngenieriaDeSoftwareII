@@ -1,0 +1,128 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Mi Cuenta</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/perfil" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-user me-2"></i>Mi Perfil
+                    </a>
+                    <a href="/perfil/editar" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="/perfil/cambiar-password" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </a>
+                    <a href="/perfil/direcciones" class="list-group-item list-group-item-action">
+                        <i class="fas fa-map-marker-alt me-2"></i>Mis Direcciones
+                    </a>
+                    {% if session.user_rol == 'admin' %}
+                    <a href="/admin" class="list-group-item list-group-item-action text-warning">
+                        <i class="fas fa-cog me-2"></i>Panel de Administración
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-user me-2"></i>Mi Perfil</h4>
+                    <a href="/perfil/editar" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Editar
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información Personal</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Nombre:</th>
+                                    <td>{{ user.nombre }} {{ user.apellido or '' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Teléfono:</th>
+                                    <td>{{ user.telefono or 'No especificado' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Rol:</th>
+                                    <td>
+                                        <span class="badge {% if user.rol == 'admin' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ user.rol|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Miembro desde:</th>
+                                    <td>{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Dirección Principal</h5>
+                            {% set principal_address = addresses|selectattr('es_principal')|first %}
+                            {% if principal_address %}
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ principal_address.nombre }}</h6>
+                                    <p class="card-text mb-1">{{ principal_address.direccion }}</p>
+                                    <p class="card-text mb-1">{{ principal_address.ciudad }}</p>
+                                    <p class="card-text mb-1">Código Postal: {{ principal_address.codigo_postal }}</p>
+                                    <p class="card-text mb-0">Tel: {{ principal_address.telefono_contacto }}</p>
+                                    <span class="badge bg-primary mt-2">Principal</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No tienes una dirección principal configurada.
+                                <a href="/perfil/direcciones" class="alert-link">Agregar dirección</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas rápidas -->
+                    <div class="row mt-4">
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                                <h5>0</h5>
+                                <p class="mb-0 text-muted">Pedidos Realizados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-heart fa-2x text-danger mb-2"></i>
+                                <h5>0</h5>
+                                <p class="mb-0 text-muted">Productos Favoritos</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                                <h5>0</h5>
+                                <p class="mb-0 text-muted">Reseñas Escritas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

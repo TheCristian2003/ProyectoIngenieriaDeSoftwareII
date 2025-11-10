@@ -1,0 +1,141 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/mis-pedidos">Mis Pedidos</a></li>
+                    <li class="breadcrumb-item active">Pedido {{ pedido.numero_pedido }}</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>Pedido {{ pedido.numero_pedido }}
+                    </h4>
+                    <div>
+                        {% set estado_badge = {
+                            'pendiente': 'warning',
+                            'confirmado': 'info',
+                            'en_proceso': 'primary', 
+                            'enviado': 'success',
+                            'entregado': 'success',
+                            'cancelado': 'danger'
+                        } %}
+                        <span class="badge bg-{{ estado_badge[pedido.estado] }} fs-6">
+                            {{ pedido.estado|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Pedido -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Información del Pedido</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Número de Pedido:</th>
+                                    <td>{{ pedido.numero_pedido }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha:</th>
+                                    <td>{{ pedido.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Método de Pago:</th>
+                                    <td>{{ pedido.metodo_pago|replace('_', ' ')|title }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estado:</th>
+                                    <td>
+                                        <span class="badge bg-{{ estado_badge[pedido.estado] }}">
+                                            {{ pedido.estado|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Dirección de Envío</h5>
+                            <div class="border rounded p-3 bg-light">
+                                {{ pedido.direccion_envio|replace('\n', '<br>')|safe }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos del Pedido -->
+                    <h5 class="mb-3">Productos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in pedido.items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ url_for('static', filename='images/productos/' + item.imagen) }}" 
+                                                 class="img-thumbnail me-3" 
+                                                 style="width: 50px; height: 50px; object-fit: contain;"
+                                                 onerror="this.src='https://via.placeholder.com/50x50/007bff/ffffff?text=P'"
+                                                 alt="{{ item.nombre }}">
+                                            <div>
+                                                <strong>{{ item.nombre }}</strong><br>
+                                                <small class="text-muted">{{ item.categoria }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ "%.2f"|format(item.precio_unitario) }}</td>
+                                    <td>{{ item.cantidad }}</td>
+                                    <td>${{ "%.2f"|format(item.subtotal) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Resumen de Totales -->
+                    <div class="row justify-content-end">
+                        <div class="col-md-4">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th>Subtotal:</th>
+                                    <td>${{ "%.2f"|format(pedido.subtotal) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Envío:</th>
+                                    <td>${{ "%.2f"|format(pedido.envio) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Descuento:</th>
+                                    <td class="text-success">-${{ "%.2f"|format(pedido.descuento) }}</td>
+                                </tr>
+                                <tr class="fw-bold fs-5">
+                                    <th>Total:</th>
+                                    <td>${{ "%.2f"|format(pedido.total) }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Nota de simulación -->
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Nota de demostración:</strong> Este es un sistema simulado para fines educativos. 
+                        No se han procesado pagos reales ni se realizarán envíos físicos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

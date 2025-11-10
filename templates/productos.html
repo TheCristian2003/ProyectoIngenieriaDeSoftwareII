@@ -93,7 +93,7 @@
                                 <span class="text-muted">Stock: {{ producto.stock }}</span>
                             </div>
                             {% if producto.stock > 0 %}
-                            <button class="btn btn-primary w-100" onclick="agregarAlCarrito({{ producto.id }})">
+                            <button class="btn btn-primary w-100" onclick="agregarAlCarritoBD({{ producto.id }})">
                                 <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
                             </button>
                             {% else %}

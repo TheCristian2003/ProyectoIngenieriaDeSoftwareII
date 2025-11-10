@@ -1,0 +1,102 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <!-- Mismo sidebar -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Mi Cuenta</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/perfil" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i>Mi Perfil
+                    </a>
+                    <a href="/perfil/editar" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="/perfil/cambiar-password" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </a>
+                    <a href="/perfil/direcciones" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-map-marker-alt me-2"></i>Mis Direcciones
+                    </a>
+                    {% if session.user_rol == 'admin' %}
+                    <a href="/admin" class="list-group-item list-group-item-action text-warning">
+                        <i class="fas fa-cog me-2"></i>Panel de Administración
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Mis Direcciones</h4>
+                    <a href="/perfil/direcciones/nueva" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Agregar Dirección
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if addresses %}
+                    <div class="row">
+                        {% for address in addresses %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 {% if address.es_principal %}border-primary{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title">{{ address.nombre }}</h5>
+                                        {% if address.es_principal %}
+                                        <span class="badge bg-primary">Principal</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <p class="card-text">
+                                        <strong>Dirección:</strong><br>
+                                        {{ address.direccion }}<br>
+                                        {{ address.ciudad }}<br>
+                                        CP: {{ address.codigo_postal or 'N/A' }}
+                                    </p>
+                                    
+                                    <p class="card-text">
+                                        <strong>Teléfono de contacto:</strong><br>
+                                        {{ address.telefono_contacto or 'N/A' }}
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group btn-group-sm w-100">
+                                        {% if not address.es_principal %}
+                                        <a href="/perfil/direcciones/principal/{{ address.id }}" 
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-star me-1"></i>Principal
+                                        </a>
+                                        {% endif %}
+                                        <a href="/perfil/direcciones/eliminar/{{ address.id }}" 
+                                           class="btn btn-outline-danger"
+                                           onclick="return confirm('¿Estás seguro de eliminar esta dirección?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                        <h4>No tienes direcciones guardadas</h4>
+                        <p class="text-muted">Agrega tu primera dirección para recibir pedidos</p>
+                        <a href="/perfil/direcciones/nueva" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Agregar Primera Dirección
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

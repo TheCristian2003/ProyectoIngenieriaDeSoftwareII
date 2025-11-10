@@ -3,6 +3,8 @@ from functools import wraps
 from database import get_db_connection
 from auth import Auth
 import os
+from carrito_db import CarritoDB
+from pedidos import Pedidos
 
 app = Flask(__name__)
 app.secret_key = 'techstore_secret_key_2024'  # Clave para las sesiones
@@ -60,6 +62,7 @@ def api_producto_individual(producto_id):
 @app.route('/carrito')
 def carrito():
     return render_template('carrito.html')
+
 
 # Ruta para buscar productos (API)
 @app.route('/api/buscar-productos')
@@ -188,21 +191,465 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Ruta de perfil de usuario
+
+# =============================================
+# RUTAS DE ADMINISTRACIÓN
+# =============================================
+
+# Dashboard de administración
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    conn = get_db_connection()
+    stats = {}
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Estadísticas generales
+        cursor.execute('SELECT COUNT(*) as total FROM usuarios')
+        stats['total_usuarios'] = cursor.fetchone()['total']
+        
+        cursor.execute('SELECT COUNT(*) as total FROM productos')
+        stats['total_productos'] = cursor.fetchone()['total']
+        
+        cursor.execute('SELECT COUNT(*) as total FROM usuarios WHERE rol = "admin"')
+        stats['total_admins'] = cursor.fetchone()['total']
+        
+        cursor.execute('SELECT COUNT(*) as total FROM usuarios WHERE created_at >= CURDATE()')
+        stats['usuarios_hoy'] = cursor.fetchone()['total']
+        
+        # Productos con stock bajo
+        cursor.execute('SELECT COUNT(*) as total FROM productos WHERE stock < 10')
+        stats['stock_bajo'] = cursor.fetchone()['total']
+        
+        conn.close()
+    
+    return render_template('admin/dashboard.html', stats=stats)
+
+# Gestión de usuarios
+@app.route('/admin/usuarios')
+@admin_required
+def admin_usuarios():
+    users = Auth.get_all_users()
+    return render_template('admin/usuarios.html', users=users)
+
+# Gestión de productos
+@app.route('/admin/productos')
+@admin_required
+def admin_productos():
+    conn = get_db_connection()
+    productos = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id, nombre, descripcion, precio, categoria, stock, imagen, created_at 
+            FROM productos ORDER BY created_at DESC
+        ''')
+        productos = cursor.fetchall()
+        conn.close()
+    
+    return render_template('admin/productos.html', productos=productos)
+
+# Agregar nuevo producto
+@app.route('/admin/productos/nuevo', methods=['GET', 'POST'])
+@admin_required
+def admin_nuevo_producto():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        precio = float(request.form['precio'])
+        categoria = request.form['categoria']
+        stock = int(request.form['stock'])
+        imagen = request.form.get('imagen', 'default.png')
+        
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (nombre, descripcion, precio, categoria, stock, imagen))
+            
+            conn.commit()
+            conn.close()
+            return redirect('/admin/productos')
+    
+    return render_template('admin/nuevo_producto.html')
+
+# Editar producto
+@app.route('/admin/productos/editar/<int:producto_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_editar_producto(producto_id):
+    conn = get_db_connection()
+    
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        precio = float(request.form['precio'])
+        categoria = request.form['categoria']
+        stock = int(request.form['stock'])
+        imagen = request.form.get('imagen', '')
+        
+        if conn:
+            cursor = conn.cursor()
+            if imagen:
+                cursor.execute('''
+                    UPDATE productos 
+                    SET nombre=%s, descripcion=%s, precio=%s, categoria=%s, stock=%s, imagen=%s
+                    WHERE id=%s
+                ''', (nombre, descripcion, precio, categoria, stock, imagen, producto_id))
+            else:
+                cursor.execute('''
+                    UPDATE productos 
+                    SET nombre=%s, descripcion=%s, precio=%s, categoria=%s, stock=%s
+                    WHERE id=%s
+                ''', (nombre, descripcion, precio, categoria, stock, producto_id))
+            
+            conn.commit()
+            conn.close()
+            return redirect('/admin/productos')
+    
+    # Obtener datos del producto para editar
+    producto = None
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM productos WHERE id = %s', (producto_id,))
+        producto = cursor.fetchone()
+        conn.close()
+    
+    if not producto:
+        return "Producto no encontrado", 404
+    
+    return render_template('admin/editar_producto.html', producto=producto)
+
+# Eliminar producto
+@app.route('/admin/productos/eliminar/<int:producto_id>')
+@admin_required
+def admin_eliminar_producto(producto_id):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM productos WHERE id = %s', (producto_id,))
+        conn.commit()
+        conn.close()
+    
+    return redirect('/admin/productos')
+
+# Cambiar rol de usuario
+@app.route('/admin/usuarios/cambiar_rol/<int:user_id>')
+@admin_required
+def admin_cambiar_rol(user_id):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Obtener rol actual
+        cursor.execute('SELECT rol FROM usuarios WHERE id = %s', (user_id,))
+        usuario = cursor.fetchone()
+        
+        if usuario:
+            nuevo_rol = 'admin' if usuario['rol'] == 'cliente' else 'cliente'
+            cursor.execute('UPDATE usuarios SET rol = %s WHERE id = %s', (nuevo_rol, user_id))
+            conn.commit()
+        
+        conn.close()
+    
+    return redirect('/admin/usuarios')
+
+# Activar/Desactivar usuario
+@app.route('/admin/usuarios/toggle_activo/<int:user_id>')
+@admin_required
+def admin_toggle_activo(user_id):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        
+        # Obtener estado actual
+        cursor.execute('SELECT activo FROM usuarios WHERE id = %s', (user_id,))
+        usuario = cursor.fetchone()
+        
+        if usuario:
+            nuevo_estado = not usuario['activo']
+            cursor.execute('UPDATE usuarios SET activo = %s WHERE id = %s', (nuevo_estado, user_id))
+            conn.commit()
+        
+        conn.close()
+    
+    return redirect('/admin/usuarios')
+
+
+# =============================================
+# RUTAS DE PERFIL DE USUARIO
+# =============================================
+
+# Perfil de usuario
 @app.route('/perfil')
 @login_required
 def perfil():
     user = Auth.get_user_by_id(session['user_id'])
-    return render_template('perfil.html', user=user)
+    addresses = Auth.get_user_addresses(session['user_id'])
+    return render_template('perfil.html', user=user, addresses=addresses)
 
-# Ruta de administración (solo para admins)
-@app.route('/admin')
+# Editar perfil
+@app.route('/perfil/editar', methods=['GET', 'POST'])
+@login_required
+def editar_perfil():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        apellido = request.form['apellido']
+        telefono = request.form['telefono']
+        
+        success, message = Auth.update_user_profile(session['user_id'], nombre, apellido, telefono)
+        
+        if success:
+            # Actualizar sesión
+            session['user_nombre'] = nombre
+            return redirect('/perfil')
+        else:
+            user = Auth.get_user_by_id(session['user_id'])
+            return render_template('editar_perfil.html', user=user, error=message)
+    
+    user = Auth.get_user_by_id(session['user_id'])
+    return render_template('editar_perfil.html', user=user)
+
+# Cambiar contraseña
+@app.route('/perfil/cambiar-password', methods=['GET', 'POST'])
+@login_required
+def cambiar_password():
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        if new_password != confirm_password:
+            return render_template('cambiar_password.html', error="Las contraseñas no coinciden")
+        
+        if len(new_password) < 6:
+            return render_template('cambiar_password.html', error="La contraseña debe tener al menos 6 caracteres")
+        
+        success, message = Auth.change_password(session['user_id'], current_password, new_password)
+        
+        if success:
+            return render_template('cambiar_password.html', success=message)
+        else:
+            return render_template('cambiar_password.html', error=message)
+    
+    return render_template('cambiar_password.html')
+
+# Gestión de direcciones
+@app.route('/perfil/direcciones')
+@login_required
+def direcciones():
+    user = Auth.get_user_by_id(session['user_id'])
+    addresses = Auth.get_user_addresses(session['user_id'])
+    return render_template('direcciones.html', user=user, addresses=addresses)
+
+# Agregar dirección
+@app.route('/perfil/direcciones/nueva', methods=['GET', 'POST'])
+@login_required
+def nueva_direccion():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        direccion = request.form['direccion']
+        ciudad = request.form['ciudad']
+        codigo_postal = request.form['codigo_postal']
+        telefono_contacto = request.form['telefono_contacto']
+        es_principal = 'es_principal' in request.form
+        
+        success, message = Auth.add_user_address(
+            session['user_id'], nombre, direccion, ciudad, 
+            codigo_postal, telefono_contacto, es_principal
+        )
+        
+        if success:
+            return redirect('/perfil/direcciones')
+        else:
+            return render_template('nueva_direccion.html', error=message)
+    
+    return render_template('nueva_direccion.html')
+
+# Eliminar dirección
+@app.route('/perfil/direcciones/eliminar/<int:address_id>')
+@login_required
+def eliminar_direccion(address_id):
+    success, message = Auth.delete_user_address(address_id, session['user_id'])
+    return redirect('/perfil/direcciones')
+
+# Establecer dirección principal
+@app.route('/perfil/direcciones/principal/<int:address_id>')
+@login_required
+def direccion_principal(address_id):
+    success, message = Auth.set_primary_address(address_id, session['user_id'])
+    return redirect('/perfil/direcciones')
+
+
+# =============================================
+# RUTAS DE CARRITO PERSISTENTE
+# =============================================
+
+@app.route('/api/carrito/agregar/<int:producto_id>')
+@login_required
+def api_agregar_carrito_db(producto_id):
+    """API para agregar producto al carrito en BD"""
+    success, message = CarritoDB.agregar_al_carrito(session['user_id'], producto_id)
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/carrito/actualizar/<int:producto_id>/<int:cantidad>')
+@login_required
+def api_actualizar_carrito_db(producto_id, cantidad):
+    """API para actualizar cantidad en carrito BD"""
+    success, message = CarritoDB.actualizar_cantidad(session['user_id'], producto_id, cantidad)
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/carrito/eliminar/<int:producto_id>')
+@login_required
+def api_eliminar_carrito_db(producto_id):
+    """API para eliminar producto del carrito BD"""
+    success, message = CarritoDB.eliminar_del_carrito(session['user_id'], producto_id)
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message}), 400
+
+@app.route('/api/carrito/contador')
+@login_required
+def api_contador_carrito_db():
+    """API para obtener contador del carrito desde BD"""
+    contador = CarritoDB.obtener_contador_carrito(session['user_id'])
+    return jsonify({'contador': contador})
+
+# =============================================
+# RUTAS DE PEDIDOS
+# =============================================
+
+@app.route('/checkout')
+@login_required
+def checkout():
+    """Página de checkout"""
+    carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
+    direcciones = Auth.get_user_addresses(session['user_id'])
+    
+    if not carrito:
+        return redirect('/carrito')
+    
+    # Calcular totales
+    subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
+    envio = 0 if subtotal > 200 else 15
+    total = subtotal + envio
+    
+    return render_template('checkout.html', 
+                         carrito=carrito, 
+                         direcciones=direcciones,
+                         subtotal=subtotal,
+                         envio=envio,
+                         total=total)
+
+@app.route('/procesar-pedido', methods=['POST'])
+@login_required
+def procesar_pedido():
+    """Procesar pedido y crear orden"""
+    direccion_id = request.form.get('direccion_id')
+    metodo_pago = request.form.get('metodo_pago')
+    
+    # Obtener dirección seleccionada
+    direcciones = Auth.get_user_addresses(session['user_id'])
+    direccion_seleccionada = next((d for d in direcciones if d['id'] == int(direccion_id)), None)
+    
+    if not direccion_seleccionada:
+        return "Dirección no válida", 400
+    
+    # Formatear dirección para el pedido
+    direccion_texto = f"{direccion_seleccionada['nombre']}\n{direccion_seleccionada['direccion']}\n{direccion_seleccionada['ciudad']}\nCP: {direccion_seleccionada['codigo_postal']}"
+    
+    # Calcular totales
+    carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
+    subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
+    envio = 0 if subtotal > 200 else 15
+    total = subtotal + envio
+    
+    # Crear pedido
+    success, numero_pedido, message = Pedidos.crear_pedido(
+        session['user_id'], direccion_texto, metodo_pago, subtotal, envio, 0, total
+    )
+    
+    if success:
+        return redirect(f'/pedido-confirmado/{numero_pedido}')
+    else:
+        return render_template('checkout.html', 
+                             carrito=carrito, 
+                             direcciones=Auth.get_user_addresses(session['user_id']),
+                             subtotal=subtotal,
+                             envio=envio,
+                             total=total,
+                             error=message)
+
+@app.route('/pedido-confirmado/<numero_pedido>')
+@login_required
+def pedido_confirmado(numero_pedido):
+    """Página de confirmación de pedido"""
+    return render_template('pedido_confirmado.html', numero_pedido=numero_pedido)
+
+@app.route('/mis-pedidos')
+@login_required
+def mis_pedidos():
+    """Página de historial de pedidos del usuario"""
+    pedidos = Pedidos.obtener_pedidos_usuario(session['user_id'])
+    return render_template('mis_pedidos.html', pedidos=pedidos)
+
+@app.route('/pedido/<int:pedido_id>')
+@login_required
+def detalle_pedido(pedido_id):
+    """Detalle de un pedido específico"""
+    pedido = Pedidos.obtener_detalle_pedido(pedido_id, session['user_id'])
+    if not pedido:
+        return "Pedido no encontrado", 404
+    return render_template('detalle_pedido.html', pedido=pedido)
+
+# =============================================
+# RUTAS DE ADMIN PARA PEDIDOS
+# =============================================
+
+@app.route('/admin/pedidos')
 @admin_required
-def admin_panel():
-    users = Auth.get_all_users()
-    return render_template('admin.html', users=users)
+def admin_pedidos():
+    """Panel de administración de pedidos"""
+    pedidos = Pedidos.obtener_todos_pedidos()
+    return render_template('admin/pedidos.html', pedidos=pedidos)
+
+@app.route('/admin/pedidos/<int:pedido_id>')
+@admin_required
+def admin_detalle_pedido(pedido_id):
+    """Detalle de pedido para admin"""
+    pedido = Pedidos.obtener_detalle_pedido(pedido_id)
+    if not pedido:
+        return "Pedido no encontrado", 404
+    return render_template('admin/detalle_pedido.html', pedido=pedido)
+
+@app.route('/admin/pedidos/actualizar-estado/<int:pedido_id>/<nuevo_estado>')
+@admin_required
+def admin_actualizar_estado_pedido(pedido_id, nuevo_estado):
+    """Actualizar estado de pedido"""
+    success, message = Pedidos.actualizar_estado_pedido(pedido_id, nuevo_estado)
+    if success:
+        return redirect(f'/admin/pedidos/{pedido_id}')
+    else:
+        return f"Error: {message}", 400
 
 
+@app.route('/api/carrito/detalle')
+@login_required
+def api_detalle_carrito_db():
+    """API para obtener detalle del carrito desde BD"""
+    carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
+    return jsonify(carrito)
 
 
 

@@ -1,0 +1,114 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración</h1>
+        <div class="btn-group">
+            <a href="/admin/usuarios" class="btn btn-outline-primary">
+                <i class="fas fa-users me-2"></i>Gestión de Usuarios
+            </a>
+            <a href="/admin/productos" class="btn btn-outline-success">
+                <i class="fas fa-boxes me-2"></i>Gestión de Productos
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_usuarios }}</h4>
+                            <p class="mb-0">Total Usuarios</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_productos }}</h4>
+                            <p class="mb-0">Total Productos</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-boxes fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_admins }}</h4>
+                            <p class="mb-0">Administradores</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-shield fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.stock_bajo }}</h4>
+                            <p class="mb-0">Stock Bajo</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="/admin/productos/nuevo" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>Agregar Producto
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/admin/usuarios" class="btn btn-primary w-100">
+                                <i class="fas fa-user-cog me-2"></i>Gestionar Usuarios
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/admin/productos" class="btn btn-info w-100">
+                                <i class="fas fa-edit me-2"></i>Editar Productos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

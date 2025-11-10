@@ -1,0 +1,94 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <!-- Mismo sidebar -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Mi Cuenta</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/perfil" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i>Mi Perfil
+                    </a>
+                    <a href="/perfil/editar" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="/perfil/cambiar-password" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </a>
+                    <a href="/perfil/direcciones" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-map-marker-alt me-2"></i>Mis Direcciones
+                    </a>
+                    {% if session.user_rol == 'admin' %}
+                    <a href="/admin" class="list-group-item list-group-item-action text-warning">
+                        <i class="fas fa-cog me-2"></i>Panel de Administración
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-plus me-2"></i>Agregar Nueva Dirección</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de la Dirección *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required
+                                   placeholder="Ej: Casa, Oficina, Apartamento">
+                            <div class="form-text">Un nombre para identificar esta dirección</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección Completa *</label>
+                            <textarea class="form-control" id="direccion" name="direccion" rows="3" required
+                                      placeholder="Calle, número, barrio, etc."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ciudad" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="codigo_postal" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" id="codigo_postal" name="codigo_postal">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefono_contacto" class="form-label">Teléfono de Contacto</label>
+                            <input type="tel" class="form-control" id="telefono_contacto" name="telefono_contacto"
+                                   placeholder="Para contactarte en esta dirección">
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="es_principal" name="es_principal">
+                            <label class="form-check-label" for="es_principal">
+                                Establecer como dirección principal
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Guardar Dirección
+                            </button>
+                            <a href="/perfil/direcciones" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-edit me-2"></i>Editar Producto</h1>
+        <a href="/admin/productos" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Productos
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombre" class="form-label">Nombre del Producto</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" 
+                               value="{{ producto.nombre }}" required>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="categoria" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoria" name="categoria" required>
+                            <option value="Procesadores" {% if producto.categoria == 'Procesadores' %}selected{% endif %}>Procesadores</option>
+                            <option value="Tarjetas Gráficas" {% if producto.categoria == 'Tarjetas Gráficas' %}selected{% endif %}>Tarjetas Gráficas</option>
+                            <option value="Memoria RAM" {% if producto.categoria == 'Memoria RAM' %}selected{% endif %}>Memoria RAM</option>
+                            <option value="Almacenamiento" {% if producto.categoria == 'Almacenamiento' %}selected{% endif %}>Almacenamiento</option>
+                            <option value="Placas Base" {% if producto.categoria == 'Placas Base' %}selected{% endif %}>Placas Base</option>
+                            <option value="Fuentes Alimentación" {% if producto.categoria == 'Fuentes Alimentación' %}selected{% endif %}>Fuentes Alimentación</option>
+                            <option value="Monitores" {% if producto.categoria == 'Monitores' %}selected{% endif %}>Monitores</option>
+                            <option value="Periféricos" {% if producto.categoria == 'Periféricos' %}selected{% endif %}>Periféricos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required>{{ producto.descripcion }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="precio" class="form-label">Precio ($)</label>
+                        <input type="number" class="form-control" id="precio" name="precio" 
+                               value="{{ producto.precio }}" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="number" class="form-control" id="stock" name="stock" 
+                               value="{{ producto.stock }}" min="0" required>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="imagen" class="form-label">Nombre de Imagen</label>
+                        <input type="text" class="form-control" id="imagen" name="imagen" 
+                               value="{{ producto.imagen }}">
+                        <div class="form-text">Nombre del archivo en static/images/productos/</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Actualizar Producto
+                    </button>
+                    <a href="/admin/productos" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

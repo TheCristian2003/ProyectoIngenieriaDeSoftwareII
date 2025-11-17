@@ -4,7 +4,7 @@ from carrito_db import CarritoDB
 class Pedidos:
     @staticmethod
     def crear_pedido(usuario_id, direccion_envio, metodo_pago, subtotal, envio, descuento, total):
-        """Crear un nuevo pedido"""
+        """Crear un nuevo pedido Y ACTUALIZAR STOCK"""
         conn = get_db_connection()
         if conn:
             try:
@@ -14,6 +14,16 @@ class Pedidos:
                 cursor.execute('SELECT generar_numero_pedido() as numero_pedido')
                 numero_pedido = cursor.fetchone()['numero_pedido']
                 
+                # Obtener items del carrito ANTES de crear el pedido
+                carrito = CarritoDB.obtener_carrito_usuario(usuario_id)
+                
+                # VERIFICAR STOCK ANTES DE PROCEDER
+                for item in carrito:
+                    cursor.execute('SELECT stock FROM productos WHERE id = %s', (item['producto_id'],))
+                    producto = cursor.fetchone()
+                    if not producto or producto['stock'] < item['cantidad']:
+                        return False, None, f"Stock insuficiente para {item['nombre']}"
+
                 # Crear pedido
                 cursor.execute('''
                     INSERT INTO pedidos (usuario_id, numero_pedido, direccion_envio, metodo_pago, subtotal, envio, descuento, total)
@@ -22,13 +32,20 @@ class Pedidos:
                 
                 pedido_id = cursor.lastrowid
                 
-                # Obtener items del carrito y crear items del pedido
-                carrito = CarritoDB.obtener_carrito_usuario(usuario_id)
+                # Crear items del pedido y ACTUALIZAR STOCK
                 for item in carrito:
+                    # Insertar item del pedido
                     cursor.execute('''
                         INSERT INTO pedido_items (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
                         VALUES (%s, %s, %s, %s, %s)
                     ''', (pedido_id, item['producto_id'], item['cantidad'], item['precio'], item['precio'] * item['cantidad']))
+                    
+                    # ACTUALIZAR STOCK del producto
+                    cursor.execute('''
+                        UPDATE productos 
+                        SET stock = stock - %s 
+                        WHERE id = %s
+                    ''', (item['cantidad'], item['producto_id']))
                 
                 # Vaciar carrito después de crear pedido
                 CarritoDB.vaciar_carrito(usuario_id)
@@ -92,15 +109,16 @@ class Pedidos:
                 pedido = cursor.fetchone()
                 
                 if pedido:
-                    # Obtener items del pedido
+                    # Obtener items del pedido - CAMBIA EL NOMBRE DE LA CLAVE
                     cursor.execute('''
                         SELECT pi.*, pr.nombre, pr.imagen, pr.categoria
                         FROM pedido_items pi
                         JOIN productos pr ON pi.producto_id = pr.id
                         WHERE pi.pedido_id = %s
                     ''', (pedido_id,))
-                    pedido['items'] = cursor.fetchall()
-                
+                    items_data = cursor.fetchall()  # Cambia el nombre
+                    pedido['productos'] = items_data  # Usa 'productos' en lugar de 'items'
+                    
             except Exception as e:
                 print(f"Error al obtener detalle pedido: {e}")
             finally:

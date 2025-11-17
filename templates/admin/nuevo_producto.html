@@ -11,7 +11,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data" id="formProducto">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nombre" class="form-label">Nombre del Producto</label>
@@ -22,14 +22,20 @@
                         <label for="categoria" class="form-label">Categoría</label>
                         <select class="form-select" id="categoria" name="categoria" required>
                             <option value="">Seleccionar categoría</option>
-                            <option value="Procesadores">Procesadores</option>
-                            <option value="Tarjetas Gráficas">Tarjetas Gráficas</option>
-                            <option value="Memoria RAM">Memoria RAM</option>
-                            <option value="Almacenamiento">Almacenamiento</option>
-                            <option value="Placas Base">Placas Base</option>
-                            <option value="Fuentes Alimentación">Fuentes Alimentación</option>
-                            <option value="Monitores">Monitores</option>
-                            <option value="Periféricos">Periféricos</option>
+                            {% if categorias %}
+                                {% for cat in categorias %}
+                                <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Procesadores">Procesadores</option>
+                                <option value="Tarjetas Gráficas">Tarjetas Gráficas</option>
+                                <option value="Memoria RAM">Memoria RAM</option>
+                                <option value="Almacenamiento">Almacenamiento</option>
+                                <option value="Placas Base">Placas Base</option>
+                                <option value="Fuentes Alimentación">Fuentes Alimentación</option>
+                                <option value="Monitores">Monitores</option>
+                                <option value="Periféricos">Periféricos</option>
+                            {% endif %}
                         </select>
                     </div>
                 </div>
@@ -51,10 +57,25 @@
                     </div>
                     
                     <div class="col-md-4 mb-3">
-                        <label for="imagen" class="form-label">Nombre de Imagen</label>
-                        <input type="text" class="form-control" id="imagen" name="imagen" 
-                               placeholder="Ej: procesador-intel.png" value="default.png">
-                        <div class="form-text">Debe coincidir con el nombre del archivo en static/images/productos/</div>
+                        <label for="imagen" class="form-label">Imagen del Producto</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="archivo_imagen" name="archivo_imagen" 
+                                   accept="image/*" style="display: none;">
+                            <input type="text" class="form-control" id="imagen" name="imagen" 
+                                   placeholder="Selecciona una imagen" readonly>
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('archivo_imagen').click()">
+                                <i class="fas fa-folder-open me-1"></i> Explorar
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            Formatos: JPG, PNG, GIF. Máx: 2MB
+                            <span id="nombre_archivo" class="text-info"></span>
+                        </div>
+                        
+                        <!-- Vista previa de la imagen -->
+                        <div class="mt-2" id="vista_previa" style="display: none;">
+                            <img id="preview" src="#" alt="Vista previa" class="img-thumbnail" style="max-height: 150px;">
+                        </div>
                     </div>
                 </div>
 
@@ -68,4 +89,51 @@
         </div>
     </div>
 </div>
+
+<script>
+// Mostrar nombre del archivo seleccionado
+document.getElementById('archivo_imagen').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Mostrar nombre del archivo
+        document.getElementById('imagen').value = file.name;
+        document.getElementById('nombre_archivo').textContent = ' - ' + file.name;
+        
+        // Mostrar vista previa
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview').src = e.target.result;
+            document.getElementById('vista_previa').style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Validación del formulario
+document.getElementById('formProducto').addEventListener('submit', function(e) {
+    const archivo = document.getElementById('archivo_imagen').files[0];
+    const nombreManual = document.getElementById('imagen').value.trim();
+    
+    // Si no se seleccionó archivo pero hay nombre manual, permitir enviar
+    if (!archivo && !nombreManual) {
+        document.getElementById('imagen').value = 'default.png';
+    }
+    
+    // Validar tamaño de archivo
+    if (archivo && archivo.size > 2 * 1024 * 1024) { // 2MB
+        e.preventDefault();
+        alert('La imagen es demasiado grande. Máximo 2MB permitido.');
+        return false;
+    }
+    
+    return true;
+});
+</script>
+
+<style>
+.input-group .form-control[readonly] {
+    background-color: #fff;
+    cursor: pointer;
+}
+</style>
 {% endblock %}

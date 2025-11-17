@@ -113,8 +113,10 @@ UPDATE productos SET imagen = 'fuentes/FuenteAlimentacion750W80Gold.png' WHERE i
 UPDATE productos SET imagen = 'monitores/MonitorGaming24pulgadas144Hz.png' WHERE id = 7;
 UPDATE productos SET imagen = 'teclados/TecladoMecanicoRGB.png' WHERE id = 8;
 
-SELECT id, nombre, imagen FROM productos;
-select id, nombre from usuarios;
+SELECT id, nombre, imagen, stock FROM productos;
+select * from usuarios;
+SELECT * FROM pedidos;
+SELECT * FROM pedido_items;
 
 
 

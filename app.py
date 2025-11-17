@@ -3,12 +3,24 @@ from functools import wraps
 from database import get_db_connection
 from auth import Auth
 import os
+from werkzeug.utils import secure_filename
 from carrito_db import CarritoDB
 from pedidos import Pedidos
+from categorias import Categorias
 
 app = Flask(__name__)
 app.secret_key = 'techstore_secret_key_2024'  # Clave para las sesiones
 
+# Configuración para subida de archivos
+app.config['UPLOAD_FOLDER'] = 'static/images/productos'
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB máximo
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           
+           
 @app.route('/')
 def index():
     conn = get_db_connection()
@@ -262,7 +274,21 @@ def admin_nuevo_producto():
         precio = float(request.form['precio'])
         categoria = request.form['categoria']
         stock = int(request.form['stock'])
-        imagen = request.form.get('imagen', 'default.png')
+        
+        # Manejar la imagen
+        imagen = 'default.png'  # Valor por defecto
+        
+        # Verificar si se subió un archivo
+        if 'archivo_imagen' in request.files:
+            file = request.files['archivo_imagen']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Guardar el archivo
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                imagen = filename
+            else:
+                # Si no se subió archivo, usar el nombre manual
+                imagen = request.form.get('imagen', 'default.png')
         
         conn = get_db_connection()
         if conn:
@@ -276,7 +302,8 @@ def admin_nuevo_producto():
             conn.close()
             return redirect('/admin/productos')
     
-    return render_template('admin/nuevo_producto.html')
+    categorias = Categorias.obtener_todas()
+    return render_template('admin/nuevo_producto.html', categorias=categorias)
 
 # Editar producto
 @app.route('/admin/productos/editar/<int:producto_id>', methods=['GET', 'POST'])
@@ -290,22 +317,27 @@ def admin_editar_producto(producto_id):
         precio = float(request.form['precio'])
         categoria = request.form['categoria']
         stock = int(request.form['stock'])
-        imagen = request.form.get('imagen', '')
+        
+        # Manejar la imagen
+        nueva_imagen = request.form.get('imagen', '')
+        
+        # Verificar si se subió un archivo nuevo
+        if 'archivo_imagen' in request.files:
+            file = request.files['archivo_imagen']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                # Guardar el nuevo archivo
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                nueva_imagen = filename
         
         if conn:
             cursor = conn.cursor()
-            if imagen:
-                cursor.execute('''
-                    UPDATE productos 
-                    SET nombre=%s, descripcion=%s, precio=%s, categoria=%s, stock=%s, imagen=%s
-                    WHERE id=%s
-                ''', (nombre, descripcion, precio, categoria, stock, imagen, producto_id))
-            else:
-                cursor.execute('''
-                    UPDATE productos 
-                    SET nombre=%s, descripcion=%s, precio=%s, categoria=%s, stock=%s
-                    WHERE id=%s
-                ''', (nombre, descripcion, precio, categoria, stock, producto_id))
+            # Siempre actualizar la imagen (puede ser la misma o una nueva)
+            cursor.execute('''
+                UPDATE productos 
+                SET nombre=%s, descripcion=%s, precio=%s, categoria=%s, stock=%s, imagen=%s
+                WHERE id=%s
+            ''', (nombre, descripcion, precio, categoria, stock, nueva_imagen, producto_id))
             
             conn.commit()
             conn.close()
@@ -322,7 +354,8 @@ def admin_editar_producto(producto_id):
     if not producto:
         return "Producto no encontrado", 404
     
-    return render_template('admin/editar_producto.html', producto=producto)
+    categorias = Categorias.obtener_todas()
+    return render_template('admin/editar_producto.html', producto=producto, categorias=categorias)
 
 # Eliminar producto
 @app.route('/admin/productos/eliminar/<int:producto_id>')
@@ -336,6 +369,8 @@ def admin_eliminar_producto(producto_id):
         conn.close()
     
     return redirect('/admin/productos')
+
+
 
 # Cambiar rol de usuario
 @app.route('/admin/usuarios/cambiar_rol/<int:user_id>')
@@ -533,31 +568,29 @@ def api_contador_carrito_db():
 @app.route('/checkout')
 @login_required
 def checkout():
-    """Página de checkout"""
+    """Página de checkout SIN DESCUENTOS"""
     carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
     direcciones = Auth.get_user_addresses(session['user_id'])
     
     if not carrito:
         return redirect('/carrito')
     
-    # Calcular totales
+    # Calcular totales SIN DESCUENTOS
     subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
     envio = 0 if subtotal > 200 else 15
-    descuento = 0  # ← AGREGAR ESTA LÍNEA
-    total = subtotal + envio - descuento
+    total = subtotal + envio  # SIN DESCUENTO
     
     return render_template('checkout.html', 
                          carrito=carrito, 
                          direcciones=direcciones,
                          subtotal=subtotal,
                          envio=envio,
-                         descuento=descuento,  # ← AGREGAR ESTA LÍNEA
                          total=total)
 
 @app.route('/procesar-pedido', methods=['POST'])
 @login_required
 def procesar_pedido():
-    """Procesar pedido y crear orden"""
+    """Procesar pedido SIN DESCUENTOS"""
     direccion_id = request.form.get('direccion_id')
     metodo_pago = request.form.get('metodo_pago')
     
@@ -571,15 +604,15 @@ def procesar_pedido():
     # Formatear dirección para el pedido
     direccion_texto = f"{direccion_seleccionada['nombre']}\n{direccion_seleccionada['direccion']}\n{direccion_seleccionada['ciudad']}\nCP: {direccion_seleccionada['codigo_postal']}"
     
-    # Calcular totales
+    # Calcular totales SIN DESCUENTOS
     carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
     subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
     envio = 0 if subtotal > 200 else 15
-    total = subtotal + envio
+    total = subtotal + envio  # SIN DESCUENTO
     
-    # Crear pedido
+    # Crear pedido SIN DESCUENTO
     success, numero_pedido, message = Pedidos.crear_pedido(
-        session['user_id'], direccion_texto, metodo_pago, subtotal, envio, 0, total
+        session['user_id'], direccion_texto, metodo_pago, subtotal, envio, 0, total  # descuento = 0
     )
     
     if success:
@@ -614,7 +647,7 @@ def detalle_pedido(pedido_id):
     if not pedido:
         return "Pedido no encontrado", 404
     
-    # Crear una copia segura del pedido
+    # Crear una copia segura del pedido - ACTUALIZA LA CLAVE
     pedido_data = {
         'id': pedido['id'],
         'numero_pedido': pedido['numero_pedido'],
@@ -627,7 +660,7 @@ def detalle_pedido(pedido_id):
         'metodo_pago': pedido['metodo_pago'],
         'created_at': pedido['created_at'],
         'updated_at': pedido['updated_at'],
-        'productos': pedido.get('items', [])
+        'productos': pedido.get('productos', [])
     }
     
     return render_template('detalle_pedido.html', pedido=pedido_data)
@@ -693,6 +726,45 @@ def admin_actualizar_estado_pedido(pedido_id, nuevo_estado):
         return redirect(f'/admin/pedidos/{pedido_id}')
     else:
         return f"Error: {message}", 400
+    
+
+@app.route('/admin/categorias')
+@admin_required
+def admin_categorias():
+    """Gestión de categorías"""
+    categorias = Categorias.obtener_todas()
+    return render_template('admin/categorias.html', categorias=categorias)
+
+@app.route('/admin/categorias/agregar', methods=['POST'])
+@admin_required
+def admin_agregar_categoria():
+    """Agregar nueva categoría desde el modal"""
+    nombre = request.form.get('nombre')
+    descripcion = request.form.get('descripcion', '')
+    
+    if not nombre:
+        return jsonify({'success': False, 'error': 'El nombre de la categoría es requerido'})
+    
+    success, message = Categorias.agregar(nombre, descripcion)
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'error': message})
+
+@app.route('/api/categorias')
+@admin_required
+def api_categorias():
+    """API para obtener todas las categorías"""
+    categorias = Categorias.obtener_todas()
+    return jsonify(categorias)
+
+@app.route('/admin/categorias/eliminar/<int:categoria_id>')
+@admin_required
+def admin_eliminar_categoria(categoria_id):
+    """Eliminar categoría"""
+    success, message = Categorias.eliminar(categoria_id)
+    return redirect('/admin/categorias')
 
 
 @app.route('/api/carrito/detalle')
@@ -703,6 +775,19 @@ def api_detalle_carrito_db():
     return jsonify(carrito)
 
 
+
+
+
+
+
+
+
+
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+    print(f"✅ Carpeta creada: {app.config['UPLOAD_FOLDER']}")
+    
 
 if __name__ == "__main__":
     import os

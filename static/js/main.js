@@ -107,15 +107,30 @@ async function cargarCarritoBD() {
 // Funciones para manipular el carrito en BD
 async function cambiarCantidadBD(productoId, cambio) {
     try {
-        const response = await fetch(`/api/carrito/actualizar/${productoId}/${cambio}`);
+        // Obtener cantidad actual del input
+        const input = document.querySelector(`input[onchange*="${productoId}"]`);
+        let cantidadActual = parseInt(input.value);
+        let nuevaCantidad = cantidadActual + cambio;
+        
+        // Validar que no sea menor a 1
+        if (nuevaCantidad < 1) {
+            nuevaCantidad = 1;
+        }
+        
+        // Actualizar en el servidor
+        const response = await fetch(`/api/carrito/actualizar/${productoId}/${nuevaCantidad}`);
         const data = await response.json();
         
         if (data.success) {
-            await cargarCarritoBD();
+            // Actualizar la interfaz
+            input.value = nuevaCantidad;
+            await cargarCarritoBD(); // Recargar todo el carrito para actualizar precios
             await actualizarContadorCarritoBD();
-            mostrarNotificacion('✅ Carrito actualizado');
+            mostrarNotificacion('✅ Cantidad actualizada');
         } else {
             mostrarNotificacion('❌ ' + data.error);
+            // Revertir el valor en caso de error
+            input.value = cantidadActual;
         }
     } catch (error) {
         console.error('Error:', error);
@@ -125,8 +140,52 @@ async function cambiarCantidadBD(productoId, cambio) {
 
 async function actualizarCantidadBD(productoId, nuevaCantidad) {
     nuevaCantidad = parseInt(nuevaCantidad);
+    
     if (nuevaCantidad >= 1) {
-        await cambiarCantidadBD(productoId, nuevaCantidad - 1); // Ajustar para el cambio
+        try {
+            const response = await fetch(`/api/carrito/actualizar/${productoId}/${nuevaCantidad}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                await cargarCarritoBD();
+                await actualizarContadorCarritoBD();
+                mostrarNotificacion('✅ Cantidad actualizada');
+            } else {
+                // SI HAY ERROR DE STOCK, OBTENER STOCK DISPONIBLE Y AJUSTAR
+                mostrarNotificacion('❌ ' + data.error);
+                
+                // Obtener el stock disponible del mensaje de error
+                const stockMatch = data.error.match(/Solo quedan (\d+) unidades/);
+                if (stockMatch) {
+                    const stockDisponible = parseInt(stockMatch[1]);
+                    
+                    // Actualizar el input con el stock disponible
+                    const input = document.querySelector(`input[onchange*="${productoId}"]`);
+                    input.value = stockDisponible;
+                    
+                    // Actualizar en el servidor con la cantidad correcta
+                    await fetch(`/api/carrito/actualizar/${productoId}/${stockDisponible}`);
+                    await cargarCarritoBD();
+                    await actualizarContadorCarritoBD();
+                    mostrarNotificacion(`✅ Cantidad ajustada al stock disponible: ${stockDisponible}`);
+                } else {
+                    // Si no podemos obtener el stock, revertir al valor anterior
+                    const input = document.querySelector(`input[onchange*="${productoId}"]`);
+                    // Recargar el carrito para obtener el valor actual
+                    await cargarCarritoBD();
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarNotificacion('❌ Error al actualizar cantidad');
+            // Recargar el carrito para restaurar valores
+            await cargarCarritoBD();
+        }
+    } else {
+        // Si es menor a 1, poner 1
+        const input = document.querySelector(`input[onchange*="${productoId}"]`);
+        input.value = 1;
+        await cambiarCantidadBD(productoId, 0); // Actualizar a 1
     }
 }
 
@@ -260,7 +319,14 @@ function actualizarResumen(totales) {
     if (document.getElementById('subtotal')) {
         document.getElementById('subtotal').textContent = `$${totales.subtotal.toFixed(2)}`;
         document.getElementById('envio').textContent = `$${totales.envio.toFixed(2)}`;
-        document.getElementById('descuento').textContent = `-$${totales.descuento.toFixed(2)}`;
+        
+        // QUITAR DESCUENTO - eliminar o ocultar esta línea
+        const descuentoElement = document.getElementById('descuento');
+        if (descuentoElement) {
+            descuentoElement.textContent = `$0.00`;
+            descuentoElement.style.display = 'none'; // Ocultar completamente
+        }
+        
         document.getElementById('total').textContent = `$${totales.total.toFixed(2)}`;
     }
 }
@@ -289,15 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Aplicar descuento
-function aplicarDescuento() {
-    const codigo = document.getElementById('codigo-descuento').value;
-    if (codigo === 'UNI2024') {
-        mostrarNotificacion('🎉 ¡Descuento aplicado! 10% de descuento en tu compra.');
-    } else {
-        mostrarNotificacion('❌ Código inválido. Usa: UNI2024');
-    }
-}
 
 // Simular compra
 // Función para proceder al pago (desde la página del carrito)

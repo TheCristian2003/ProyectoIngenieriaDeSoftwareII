@@ -25,11 +25,21 @@ class CarritoDB:
 
     @staticmethod
     def agregar_al_carrito(usuario_id, producto_id, cantidad=1):
-        """Agregar producto al carrito en la base de datos"""
+        """Agregar producto al carrito en la base de datos CON VALIDACIÓN DE STOCK"""
         conn = get_db_connection()
         if conn:
             try:
-                cursor = conn.cursor()
+                cursor = conn.cursor(dictionary=True)
+                
+                # VERIFICAR STOCK DISPONIBLE
+                cursor.execute('SELECT stock FROM productos WHERE id = %s', (producto_id,))
+                producto = cursor.fetchone()
+                
+                if not producto:
+                    return False, "Producto no encontrado"
+                
+                if producto['stock'] <= 0:
+                    return False, "Producto sin stock disponible"
                 
                 # Verificar si ya existe en el carrito
                 cursor.execute('''
@@ -40,13 +50,21 @@ class CarritoDB:
                 item_existente = cursor.fetchone()
                 
                 if item_existente:
+                    # Validar que no exceda el stock disponible
+                    cantidad_total = item_existente[1] + cantidad
+                    if cantidad_total > producto['stock']:
+                        return False, f"Stock insuficiente. Solo quedan {producto['stock']} unidades"
+                    
                     # Actualizar cantidad
-                    nueva_cantidad = item_existente[1] + cantidad
                     cursor.execute('''
                         UPDATE carritos SET cantidad = %s 
                         WHERE usuario_id = %s AND producto_id = %s
-                    ''', (nueva_cantidad, usuario_id, producto_id))
+                    ''', (cantidad_total, usuario_id, producto_id))
                 else:
+                    # Validar que la cantidad no exceda el stock
+                    if cantidad > producto['stock']:
+                        return False, f"Stock insuficiente. Solo quedan {producto['stock']} unidades"
+                    
                     # Insertar nuevo item
                     cursor.execute('''
                         INSERT INTO carritos (usuario_id, producto_id, cantidad)
@@ -65,14 +83,25 @@ class CarritoDB:
 
     @staticmethod
     def actualizar_cantidad(usuario_id, producto_id, nueva_cantidad):
-        """Actualizar cantidad de producto en el carrito"""
+        """Actualizar cantidad de producto en el carrito CON VALIDACIÓN DE STOCK"""
         if nueva_cantidad <= 0:
             return CarritoDB.eliminar_del_carrito(usuario_id, producto_id)
         
         conn = get_db_connection()
         if conn:
             try:
-                cursor = conn.cursor()
+                cursor = conn.cursor(dictionary=True)
+                
+                # VERIFICAR STOCK ANTES DE ACTUALIZAR
+                cursor.execute('SELECT stock FROM productos WHERE id = %s', (producto_id,))
+                producto = cursor.fetchone()
+                
+                if not producto:
+                    return False, "Producto no encontrado"
+                
+                if nueva_cantidad > producto['stock']:
+                    return False, f"Stock insuficiente. Máximo {producto['stock']} unidades disponibles"
+                
                 cursor.execute('''
                     UPDATE carritos SET cantidad = %s 
                     WHERE usuario_id = %s AND producto_id = %s
@@ -85,7 +114,6 @@ class CarritoDB:
             finally:
                 conn.close()
         return False, "Error de conexión a la base de datos"
-
     @staticmethod
     def eliminar_del_carrito(usuario_id, producto_id):
         """Eliminar producto del carrito"""

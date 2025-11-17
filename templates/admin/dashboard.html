@@ -2,78 +2,103 @@
 
 {% block content %}
 <div class="container-fluid py-4">
+    <!-- Header mejorado -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-tachometer-alt me-2"></i>Panel de Administración</h1>
+        <div>
+            <h1 class="h3 mb-1"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Panel de Administración</h1>
+            <p class="text-muted mb-0">Resumen general y estadísticas de la tienda</p>
+        </div>
         <div class="btn-group">
+            <a href="/admin/pedidos" class="btn btn-outline-info">
+                <i class="fas fa-clipboard-list me-2"></i>Pedidos
+            </a>
             <a href="/admin/usuarios" class="btn btn-outline-primary">
-                <i class="fas fa-users me-2"></i>Gestión de Usuarios
+                <i class="fas fa-users me-2"></i>Usuarios
             </a>
             <a href="/admin/productos" class="btn btn-outline-success">
-                <i class="fas fa-boxes me-2"></i>Gestión de Productos
+                <i class="fas fa-boxes me-2"></i>Productos
             </a>
         </div>
     </div>
 
-    <!-- Estadísticas -->
+    <!-- Tarjetas de estadísticas con mejor diseño -->
     <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="card bg-primary text-white">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ stats.total_usuarios }}</h4>
-                            <p class="mb-0">Total Usuarios</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Usuarios
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_usuarios }}</div>
+                            <small class="text-success">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                {{ stats.usuarios_hoy }} hoy
+                            </small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-success text-white">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ stats.total_productos }}</h4>
-                            <p class="mb-0">Total Productos</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Productos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_productos }}</div>
+                            <small class="text-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                {{ stats.stock_bajo }} con stock bajo
+                            </small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-boxes fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-warning text-dark">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ stats.total_admins }}</h4>
-                            <p class="mb-0">Administradores</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Administradores
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_admins }}</div>
+                            <small class="text-info">Usuarios con privilegios</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-user-shield fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-4">
-            <div class="card bg-danger text-white">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ stats.stock_bajo }}</h4>
-                            <p class="mb-0">Stock Bajo</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Stock Bajo
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.stock_bajo }}</div>
+                            <small class="text-danger">Necesitan atención</small>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -81,34 +106,221 @@
         </div>
     </div>
 
-    <!-- Acciones rápidas -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Acciones Rápidas</h5>
+    <!-- Sección de acciones rápidas mejorada -->
+    <div class="row">
+        <!-- Acciones principales -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <a href="/admin/productos/nuevo" class="btn btn-success w-100">
-                                <i class="fas fa-plus me-2"></i>Agregar Producto
-                            </a>
+                            <div class="card bg-gradient-primary text-white h-100">
+                                <div class="card-body">
+                                    <div class="text-center">
+                                        <i class="fas fa-plus-circle fa-2x mb-3"></i>
+                                        <h6>Agregar Producto</h6>
+                                        <a href="/admin/productos/nuevo" class="btn btn-light btn-sm mt-2">
+                                            Ir <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <a href="/admin/usuarios" class="btn btn-primary w-100">
-                                <i class="fas fa-user-cog me-2"></i>Gestionar Usuarios
-                            </a>
+                            <div class="card bg-gradient-success text-white h-100">
+                                <div class="card-body">
+                                    <div class="text-center">
+                                        <i class="fas fa-user-cog fa-2x mb-3"></i>
+                                        <h6>Gestionar Usuarios</h6>
+                                        <a href="/admin/usuarios" class="btn btn-light btn-sm mt-2">
+                                            Ir <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <a href="/admin/productos" class="btn btn-info w-100">
-                                <i class="fas fa-edit me-2"></i>Editar Productos
-                            </a>
+                            <div class="card bg-gradient-info text-white h-100">
+                                <div class="card-body">
+                                    <div class="text-center">
+                                        <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                                        <h6>Ver Pedidos</h6>
+                                        <a href="/admin/pedidos" class="btn btn-light btn-sm mt-2">
+                                            Ir <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de categorías -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Gestión de Categorías</h6>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCategoria">
+                        <i class="fas fa-plus me-1"></i> Nueva
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Procesadores
+                            <span class="badge bg-primary rounded-pill">8</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Tarjetas Gráficas
+                            <span class="badge bg-primary rounded-pill">5</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Memoria RAM
+                            <span class="badge bg-primary rounded-pill">12</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Almacenamiento
+                            <span class="badge bg-primary rounded-pill">7</span>
+                        </div>
+                        <!-- Las categorías se cargarán dinámicamente -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para agregar categoría -->
+<div class="modal fade" id="modalCategoria" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Nueva Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCategoria">
+                    <div class="mb-3">
+                        <label for="nombreCategoria" class="form-label">Nombre de la Categoría</label>
+                        <input type="text" class="form-control" id="nombreCategoria" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionCategoria" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionCategoria" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="agregarCategoria()">Guardar Categoría</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.border-left-primary { border-left: 4px solid #4e73df !important; }
+.border-left-success { border-left: 4px solid #1cc88a !important; }
+.border-left-warning { border-left: 4px solid #f6c23e !important; }
+.border-left-danger { border-left: 4px solid #e74a3b !important; }
+
+.bg-gradient-primary { background: linear-gradient(45deg, #4e73df, #224abe); }
+.bg-gradient-success { background: linear-gradient(45deg, #1cc88a, #13855c); }
+.bg-gradient-info { background: linear-gradient(45deg, #36b9cc, #258391); }
+
+.text-xs { font-size: 0.7rem; }
+.text-gray-800 { color: #5a5c69 !important; }
+.text-gray-300 { color: #dddfeb !important; }
+</style>
+
+<script>
+async function agregarCategoria() {
+    const nombre = document.getElementById('nombreCategoria').value.trim();
+    const descripcion = document.getElementById('descripcionCategoria').value.trim();
+    
+    if (!nombre) {
+        alert('Por favor ingresa un nombre para la categoría');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/admin/categorias/agregar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `nombre=${encodeURIComponent(nombre)}&descripcion=${encodeURIComponent(descripcion)}`
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            
+            // Cerrar el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCategoria'));
+            modal.hide();
+            
+            // Limpiar el formulario
+            document.getElementById('formCategoria').reset();
+            
+            // Recargar la lista de categorías
+            await cargarCategorias();
+            
+        } else {
+            alert('❌ ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al agregar la categoría');
+    }
+}
+
+async function cargarCategorias() {
+    try {
+        const response = await fetch('/api/categorias');
+        const categorias = await response.json();
+        
+        const listaCategorias = document.querySelector('.list-group');
+        if (listaCategorias) {
+            // Limpiar lista actual (excepto el primer item si existe)
+            listaCategorias.innerHTML = '';
+            
+            // Agregar cada categoría
+            categorias.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.innerHTML = `
+                    ${cat.nombre}
+                    <span class="badge bg-primary rounded-pill">0</span>
+                `;
+                listaCategorias.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Error al cargar categorías:', error);
+    }
+}
+
+// Cargar categorías al iniciar la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarCategorias();
+});
+</script>
 {% endblock %}

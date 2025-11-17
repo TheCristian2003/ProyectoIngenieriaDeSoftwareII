@@ -11,7 +11,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data" id="formProducto">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nombre" class="form-label">Nombre del Producto</label>
@@ -22,14 +22,24 @@
                     <div class="col-md-6 mb-3">
                         <label for="categoria" class="form-label">Categoría</label>
                         <select class="form-select" id="categoria" name="categoria" required>
-                            <option value="Procesadores" {% if producto.categoria == 'Procesadores' %}selected{% endif %}>Procesadores</option>
-                            <option value="Tarjetas Gráficas" {% if producto.categoria == 'Tarjetas Gráficas' %}selected{% endif %}>Tarjetas Gráficas</option>
-                            <option value="Memoria RAM" {% if producto.categoria == 'Memoria RAM' %}selected{% endif %}>Memoria RAM</option>
-                            <option value="Almacenamiento" {% if producto.categoria == 'Almacenamiento' %}selected{% endif %}>Almacenamiento</option>
-                            <option value="Placas Base" {% if producto.categoria == 'Placas Base' %}selected{% endif %}>Placas Base</option>
-                            <option value="Fuentes Alimentación" {% if producto.categoria == 'Fuentes Alimentación' %}selected{% endif %}>Fuentes Alimentación</option>
-                            <option value="Monitores" {% if producto.categoria == 'Monitores' %}selected{% endif %}>Monitores</option>
-                            <option value="Periféricos" {% if producto.categoria == 'Periféricos' %}selected{% endif %}>Periféricos</option>
+                            <option value="">Seleccionar categoría</option>
+                            {% if categorias %}
+                                {% for cat in categorias %}
+                                <option value="{{ cat.nombre }}" 
+                                       {% if producto.categoria == cat.nombre %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Procesadores" {% if producto.categoria == 'Procesadores' %}selected{% endif %}>Procesadores</option>
+                                <option value="Tarjetas Gráficas" {% if producto.categoria == 'Tarjetas Gráficas' %}selected{% endif %}>Tarjetas Gráficas</option>
+                                <option value="Memoria RAM" {% if producto.categoria == 'Memoria RAM' %}selected{% endif %}>Memoria RAM</option>
+                                <option value="Almacenamiento" {% if producto.categoria == 'Almacenamiento' %}selected{% endif %}>Almacenamiento</option>
+                                <option value="Placas Base" {% if producto.categoria == 'Placas Base' %}selected{% endif %}>Placas Base</option>
+                                <option value="Fuentes Alimentación" {% if producto.categoria == 'Fuentes Alimentación' %}selected{% endif %}>Fuentes Alimentación</option>
+                                <option value="Monitores" {% if producto.categoria == 'Monitores' %}selected{% endif %}>Monitores</option>
+                                <option value="Periféricos" {% if producto.categoria == 'Periféricos' %}selected{% endif %}>Periféricos</option>
+                            {% endif %}
                         </select>
                     </div>
                 </div>
@@ -53,10 +63,36 @@
                     </div>
                     
                     <div class="col-md-4 mb-3">
-                        <label for="imagen" class="form-label">Nombre de Imagen</label>
-                        <input type="text" class="form-control" id="imagen" name="imagen" 
-                               value="{{ producto.imagen }}">
-                        <div class="form-text">Nombre del archivo en static/images/productos/</div>
+                        <label for="imagen" class="form-label">Imagen del Producto</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="archivo_imagen" name="archivo_imagen" 
+                                   accept="image/*" style="display: none;">
+                            <input type="text" class="form-control" id="imagen" name="imagen" 
+                                   value="{{ producto.imagen }}" readonly>
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('archivo_imagen').click()">
+                                <i class="fas fa-folder-open me-1"></i> Explorar
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            Formatos: JPG, PNG, GIF. Máx: 2MB
+                            <span id="nombre_archivo" class="text-info"></span>
+                        </div>
+                        
+                        <!-- Imagen actual y vista previa -->
+                        <div class="mt-2">
+                            {% if producto.imagen and producto.imagen != 'default.png' %}
+                            <div class="mb-2">
+                                <small class="text-muted">Imagen actual:</small>
+                                <img src="{{ url_for('static', filename='images/productos/' + producto.imagen) }}" 
+                                     alt="{{ producto.nombre }}" class="img-thumbnail ms-2" style="max-height: 80px;">
+                            </div>
+                            {% endif %}
+                            
+                            <div id="vista_previa" style="display: none;">
+                                <small class="text-muted">Nueva imagen:</small>
+                                <img id="preview" src="#" alt="Vista previa" class="img-thumbnail ms-2" style="max-height: 80px;">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -70,4 +106,53 @@
         </div>
     </div>
 </div>
+
+<script>
+// Mostrar nombre del archivo seleccionado y vista previa
+document.getElementById('archivo_imagen').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Mostrar nombre del archivo
+        document.getElementById('imagen').value = file.name;
+        document.getElementById('nombre_archivo').textContent = ' - ' + file.name;
+        
+        // Mostrar vista previa
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview').src = e.target.result;
+            document.getElementById('vista_previa').style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Validación del formulario
+document.getElementById('formProducto').addEventListener('submit', function(e) {
+    const archivo = document.getElementById('archivo_imagen').files[0];
+    
+    // Validar tamaño de archivo
+    if (archivo && archivo.size > 2 * 1024 * 1024) { // 2MB
+        e.preventDefault();
+        alert('La imagen es demasiado grande. Máximo 2MB permitido.');
+        return false;
+    }
+    
+    return true;
+});
+
+// Mostrar imagen actual al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const imagenActual = "{{ producto.imagen }}";
+    if (imagenActual && imagenActual !== 'default.png') {
+        document.getElementById('nombre_archivo').textContent = ' - ' + imagenActual + ' (actual)';
+    }
+});
+</script>
+
+<style>
+.input-group .form-control[readonly] {
+    background-color: #fff;
+    cursor: pointer;
+}
+</style>
 {% endblock %}

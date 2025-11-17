@@ -43,11 +43,13 @@
                                      style="width: 50px; height: 50px; object-fit: contain;"
                                      onerror="this.src='https://via.placeholder.com/50x50/007bff/ffffff?text=P'"
                                      alt="{{ producto.nombre }}">
+                            </td>
                             <td>
                                 <a href="/producto/{{ producto.id }}" target="_blank">
                                     {{ producto.nombre }}
                                 </a>
                             </td>
+                            <td>
                                 <span class="badge bg-secondary">{{ producto.categoria }}</span>
                             </td>
                             <td>${{ producto.precio }}</td>

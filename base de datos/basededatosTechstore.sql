@@ -113,22 +113,9 @@ INSERT INTO categorias (nombre, descripcion) VALUES
 ('Placas Base', 'Motherboards y placas base'),
 ('Fuentes Alimentación', 'Fuentes de poder y alimentación'),
 ('Monitores', 'Pantallas y monitores'),
-('Periféricos', 'Teclados, mouse y accesorios');
+('Periféricos', 'Teclados, mouse y accesorios'),
+('Refrigeración', 'Sistemas de refrigeración para PC');
 
-ALTER TABLE productos 
-MODIFY COLUMN categoria VARCHAR(100);
-
-UPDATE productos SET imagen = 'procesadores/ProcesadorIntelCorei7-12700K.png' WHERE id = 1;
-UPDATE productos SET imagen = 'tarjetas_graficas/TarjetaGraficaNVIDIARTX4060.png' WHERE id = 2;
-UPDATE productos SET imagen = 'rams/MemoriaRAMCorsair16GBDDR4.png' WHERE id = 3;
-UPDATE productos SET imagen = 'discos_duros/SSDSamsung1TBNVMeM2.png' WHERE id = 4;
-UPDATE productos SET imagen = 'placas_base/PlacaBaseASUSB660.png' WHERE id = 5;
-UPDATE productos SET imagen = 'fuentes/FuenteAlimentacion750W80Gold.png' WHERE id = 6;
-UPDATE productos SET imagen = 'monitores/MonitorGaming24pulgadas144Hz.png' WHERE id = 7;
-UPDATE productos SET imagen = 'teclados/TecladoMecanicoRGB.png' WHERE id = 8;
-
-
-SET SQL_SAFE_UPDATES = 1;
 
 UPDATE productos SET categoria = 'Procesadores' WHERE categoria LIKE '%Procesador%';
 UPDATE productos SET categoria = 'Tarjetas Gráficas' WHERE categoria LIKE '%Tarjeta%';
@@ -140,12 +127,7 @@ UPDATE productos SET categoria = 'Monitores' WHERE categoria LIKE '%Monitor%';
 UPDATE productos SET categoria = 'Periféricos' WHERE categoria LIKE '%Periféricos%';
 
 
-SELECT 'Categorías en la tabla categorias:' as '';
 SELECT * FROM categorias;
-
-SELECT 'Productos con sus categorías:' as '';
-SELECT id, nombre, categoria FROM productos;
-
 SELECT id, nombre, categoria FROM productos;
 SELECT id, nombre, imagen, stock FROM productos;
 select * from usuarios;

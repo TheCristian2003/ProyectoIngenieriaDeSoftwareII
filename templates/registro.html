@@ -1,57 +1,312 @@
 {% extends "index.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Registro de Usuario</h4>
-                </div>
-                <div class="card-body">
-                    {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                    {% endif %}
-                    
-                    <form method="POST">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="nombre" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+<div class="register-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="register-card">
+                    <div class="register-header">
+                        <h4><i class="fas fa-user-plus me-2"></i>Crear Cuenta</h4>
+                        <p class="mb-0 mt-2 opacity-75">Únete a la comunidad TechStore</p>
+                    </div>
+                    <div class="register-body">
+                        {% if error %}
+                        <div class="alert alert-danger animate-fade-in">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                        </div>
+                        {% endif %}
+                        
+                        <form method="POST" class="needs-validation" novalidate>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nombre" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>Nombre *
+                                    </label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                                           placeholder="Tu nombre" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa tu nombre
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>Como quieres que te llamemos
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="apellido" class="form-label fw-bold">Apellido</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" 
+                                           placeholder="Tu apellido">
+                                    <div class="form-text">
+                                        <i class="fas fa-user-tag me-1"></i>Opcional
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="apellido" class="form-label">Apellido</label>
-                                <input type="text" class="form-control" id="apellido" name="apellido">
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="tu@email.com" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingresa un email válido
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-shield-alt me-1"></i>Usaremos este email para tu cuenta
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="telefono" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1"></i>Teléfono
+                                </label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                       placeholder="+1 234 567 8900">
+                                <div class="form-text">
+                                    <i class="fas fa-mobile-alt me-1"></i>Para notificaciones importantes (opcional)
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-1"></i>Contraseña *
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="••••••••" required minlength="6">
+                                <div class="invalid-feedback">
+                                    La contraseña debe tener al menos 6 caracteres
+                                </div>
+                                <div class="password-strength mt-2">
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar" id="password-strength-bar" style="width: 0%"></div>
+                                    </div>
+                                    <small class="text-muted" id="password-strength-text">Seguridad de la contraseña</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label small" for="terms">
+                                        Acepto los <a href="#" class="text-decoration-none">términos y condiciones</a> 
+                                        y la <a href="#" class="text-decoration-none">política de privacidad</a>
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        Debes aceptar los términos y condiciones
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="register-btn mb-3">
+                                <i class="fas fa-rocket me-2"></i>Crear Mi Cuenta
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <p class="text-muted mb-3">¿Ya eres parte de TechStore?</p>
+                            <a href="/login" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </a>
+                        </div>
+                        
+                        <div class="benefits-section mt-4 p-3 rounded">
+                            <h6 class="fw-bold text-center mb-3">
+                                <i class="fas fa-gift me-2 text-primary"></i>Beneficios de registrarte
+                            </h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <i class="fas fa-shopping-cart text-success mb-2"></i>
+                                    <small class="d-block">Carrito persistente</small>
+                                </div>
+                                <div class="col-4">
+                                    <i class="fas fa-history text-info mb-2"></i>
+                                    <small class="d-block">Historial de pedidos</small>
+                                </div>
+                                <div class="col-4">
+                                    <i class="fas fa-tag text-warning mb-2"></i>
+                                    <small class="d-block">Ofertas exclusivas</small>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="telefono" class="form-label">Teléfono (opcional)</label>
-                            <input type="tel" class="form-control" id="telefono" name="telefono">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
-                            <div class="form-text">Mínimo 6 caracteres</div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-user-plus me-2"></i>Registrarse
-                        </button>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Estilos específicos para registro */
+.register-container {
+    min-height: 100vh;
+    background: var(--tech-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 2rem 0;
+}
+
+.register-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 75% 75%, rgba(118, 75, 162, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(52, 152, 219, 0.1) 0%, transparent 25%);
+    animation: float 8s ease-in-out infinite;
+}
+
+.register-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.register-header {
+    background: var(--success-gradient);
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.register-header h4 {
+    margin: 0;
+    font-weight: 700;
+    position: relative;
+    z-index: 2;
+}
+
+.register-body {
+    padding: 2.5rem;
+}
+
+.register-btn {
+    background: var(--success-gradient);
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+.register-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+}
+
+.benefits-section {
+    background: rgba(79, 172, 254, 0.1);
+    border: 1px solid rgba(79, 172, 254, 0.2);
+}
+
+.password-strength .progress {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.password-strength .progress-bar {
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Validación de formularios */
+.was-validated .form-control:valid {
+    border-color: #198754;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v2'/%3e%3c/svg%3e");
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-body {
+        padding: 2rem;
+    }
+    
+    .register-container {
+        padding: 1rem;
+    }
+}
+</style>
+
+<script>
+// Validación de contraseña en tiempo real
+document.getElementById('password').addEventListener('input', function(e) {
+    const password = e.target.value;
+    const strengthBar = document.getElementById('password-strength-bar');
+    const strengthText = document.getElementById('password-strength-text');
+    
+    let strength = 0;
+    let text = 'Muy débil';
+    let color = 'danger';
+    
+    if (password.length >= 6) strength += 25;
+    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
+    if (password.match(/\d/)) strength += 25;
+    if (password.match(/[^a-zA-Z\d]/)) strength += 25;
+    
+    if (strength >= 75) {
+        text = 'Muy fuerte';
+        color = 'success';
+    } else if (strength >= 50) {
+        text = 'Fuerte';
+        color = 'info';
+    } else if (strength >= 25) {
+        text = 'Moderada';
+        color = 'warning';
+    }
+    
+    strengthBar.style.width = strength + '%';
+    strengthBar.className = 'progress-bar bg-' + color;
+    strengthText.textContent = 'Seguridad: ' + text;
+    strengthText.className = 'text-' + color;
+});
+
+// Validación de Bootstrap
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
 {% endblock %}

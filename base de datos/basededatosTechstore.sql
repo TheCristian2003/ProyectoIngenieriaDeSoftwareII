@@ -105,6 +105,45 @@ INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VA
 ('Monitor Gaming 24" 144Hz', '1080p, 1ms, FreeSync, HDMI/DisplayPort', 220.00, 'Monitores', 6, 'monitor_gaming.jpg'),
 ('Teclado Mecánico RGB', 'Switches Red, Retroiluminación RGB', 75.00, 'Periféricos', 18, 'teclado_mecanico.jpg');
 
+-- Procesadores
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('Procesador Intel Core i9-13900K', '24 núcleos, 32 hilos, 5.8GHz Turbo', 650.00, 'Procesadores', 8, 'procesadores/intel_i9_13900k.jpg'),
+('Procesador AMD Ryzen 9 7950X', '16 núcleos, 32 hilos, 5.7GHz Boost', 650.00, 'Procesadores', 6, 'procesadores/amd_ryzen9_7950x.jpg'),
+('Procesador Intel Core i5-13600K', '14 núcleos, 20 hilos, 5.1GHz Turbo', 320.00, 'Procesadores', 12, 'procesadores/intel_i5_13600k.jpg');
+
+-- Tarjetas Gráficas
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('NVIDIA RTX 4090 24GB', '24GB GDDR6X, DLSS 3, Ray Tracing', 1600.00, 'Tarjetas Gráficas', 3, 'tarjetas_graficas/nvidia_rtx4090.jpg'),
+('AMD Radeon RX 7900 XTX', '24GB GDDR6, Ray Accelerators', 1000.00, 'Tarjetas Gráficas', 5, 'tarjetas_graficas/amd_rx7900xtx.jpg'),
+('NVIDIA RTX 4070 Ti 12GB', '12GB GDDR6X, DLSS 3, 4K Gaming', 800.00, 'Tarjetas Gráficas', 7, 'tarjetas_graficas/nvidia_rtx4070ti.jpg');
+
+-- Memoria RAM
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('Corsair Vengeance RGB 32GB DDR5', '5600MHz, CL36, RGB Sync', 150.00, 'Memoria RAM', 15, 'memoria_ram/corsair_ddr5_rgb.jpg'),
+('G.Skill Trident Z5 64GB DDR5', '6000MHz, CL30, 2x32GB Kit', 280.00, 'Memoria RAM', 4, 'memoria_ram/gskill_trident_ddr5.jpg'),
+('Kingston Fury Beast 16GB DDR4', '3200MHz, CL16, Plug & Play', 55.00, 'Memoria RAM', 20, 'memoria_ram/kingston_fury_ddr4.jpg');
+
+-- Almacenamiento
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('Samsung 990 Pro 2TB NVMe', '7450MB/s lectura, PCIe 4.0', 180.00, 'Almacenamiento', 10, 'almacenamiento/samsung_990pro.jpg'),
+('WD Blue SN570 1TB NVMe', '3500MB/s lectura, PCIe 3.0', 65.00, 'Almacenamiento', 18, 'almacenamiento/wd_blue_sn570.jpg'),
+('Seagate Barracuda 4TB HDD', '5400RPM, SATA III, 256MB cache', 85.00, 'Almacenamiento', 12, 'almacenamiento/seagate_barracuda.jpg');
+
+-- Refrigeración
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('Cooler Master Hyper 212', 'Torre simple, 120mm, 4 pipas calor', 45.00, 'Refrigeración', 15, 'refrigeracion/coolermaster_hyper212.jpg'),
+('NZXT Kraken X73', 'AIO 360mm, RGB, LCD display', 180.00, 'Refrigeración', 6, 'refrigeracion/nzxt_kraken_x73.jpg'),
+('Arctic Freezer 34 eSports', 'Doble ventilador, 4 pipas calor', 40.00, 'Refrigeración', 12, 'refrigeracion/arctic_freezer34.jpg');
+
+-- Gabinetes
+INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
+('Lian Li O11 Dynamic', 'Mid Tower, Cristal templado, RGB', 150.00, 'Torres', 8, 'gabinetes/lianli_o11.jpg'),
+('Corsair 4000D Airflow', 'Mid Tower, Mesh front panel, USB-C', 95.00, 'Torres', 10, 'gabinetes/corsair_4000d.jpg'),
+('Fractal Design Meshify 2', 'Mid Tower, Panel mesh, Modular', 130.00, 'Torres', 6, 'gabinetes/fractal_meshify2.jpg');
+
+
+
+
 INSERT INTO categorias (nombre, descripcion) VALUES 
 ('Procesadores', 'Unidades de procesamiento central (CPU)'),
 ('Tarjetas Gráficas', 'Tarjetas de video y aceleradores gráficos'),

@@ -81,14 +81,19 @@ CREATE TABLE IF NOT EXISTS pedido_items (
     FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    descripcion TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-DELETE FROM usuarios where id>0;
+
+
 
 -- Insertar admin con el hash CORRECTO
 INSERT INTO usuarios (email, password, nombre, apellido, rol) 
 VALUES ('admin@techstore.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'Administrador', 'Principal', 'admin');
-
-SELECT id, email, password, nombre, rol FROM usuarios;
 
 INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VALUES
 ('Procesador Intel Core i7-12700K', 'Procesador de 12 núcleos, 4.9GHz Turbo', 350.00, 'Procesadores', 15, 'cpu_intel.jpg'),
@@ -100,9 +105,18 @@ INSERT INTO productos (nombre, descripcion, precio, categoria, stock, imagen) VA
 ('Monitor Gaming 24" 144Hz', '1080p, 1ms, FreeSync, HDMI/DisplayPort', 220.00, 'Monitores', 6, 'monitor_gaming.jpg'),
 ('Teclado Mecánico RGB', 'Switches Red, Retroiluminación RGB', 75.00, 'Periféricos', 18, 'teclado_mecanico.jpg');
 
-INSERT INTO direcciones (usuario_id, nombre, direccion, ciudad, codigo_postal, telefono_contacto, es_principal) 
-VALUES (5, 'Casa Principal', 'Calle Falsa 123', 'Bogotá', '110011', '3001234567', TRUE);
+INSERT INTO categorias (nombre, descripcion) VALUES 
+('Procesadores', 'Unidades de procesamiento central (CPU)'),
+('Tarjetas Gráficas', 'Tarjetas de video y aceleradores gráficos'),
+('Memoria RAM', 'Memoria de acceso aleatorio'),
+('Almacenamiento', 'Discos duros, SSDs y unidades de almacenamiento'),
+('Placas Base', 'Motherboards y placas base'),
+('Fuentes Alimentación', 'Fuentes de poder y alimentación'),
+('Monitores', 'Pantallas y monitores'),
+('Periféricos', 'Teclados, mouse y accesorios');
 
+ALTER TABLE productos 
+MODIFY COLUMN categoria VARCHAR(100);
 
 UPDATE productos SET imagen = 'procesadores/ProcesadorIntelCorei7-12700K.png' WHERE id = 1;
 UPDATE productos SET imagen = 'tarjetas_graficas/TarjetaGraficaNVIDIARTX4060.png' WHERE id = 2;
@@ -113,6 +127,26 @@ UPDATE productos SET imagen = 'fuentes/FuenteAlimentacion750W80Gold.png' WHERE i
 UPDATE productos SET imagen = 'monitores/MonitorGaming24pulgadas144Hz.png' WHERE id = 7;
 UPDATE productos SET imagen = 'teclados/TecladoMecanicoRGB.png' WHERE id = 8;
 
+
+SET SQL_SAFE_UPDATES = 1;
+
+UPDATE productos SET categoria = 'Procesadores' WHERE categoria LIKE '%Procesador%';
+UPDATE productos SET categoria = 'Tarjetas Gráficas' WHERE categoria LIKE '%Tarjeta%';
+UPDATE productos SET categoria = 'Memoria RAM' WHERE categoria LIKE '%Memoria%';
+UPDATE productos SET categoria = 'Almacenamiento' WHERE categoria LIKE '%Almacenamiento%';
+UPDATE productos SET categoria = 'Placas Base' WHERE categoria LIKE '%Placa%';
+UPDATE productos SET categoria = 'Fuentes Alimentación' WHERE categoria LIKE '%Fuente%';
+UPDATE productos SET categoria = 'Monitores' WHERE categoria LIKE '%Monitor%';
+UPDATE productos SET categoria = 'Periféricos' WHERE categoria LIKE '%Periféricos%';
+
+
+SELECT 'Categorías en la tabla categorias:' as '';
+SELECT * FROM categorias;
+
+SELECT 'Productos con sus categorías:' as '';
+SELECT id, nombre, categoria FROM productos;
+
+SELECT id, nombre, categoria FROM productos;
 SELECT id, nombre, imagen, stock FROM productos;
 select * from usuarios;
 SELECT * FROM pedidos;

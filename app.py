@@ -3,6 +3,9 @@ from functools import wraps
 from database import get_db_connection
 from auth import Auth
 import os
+import time
+import threading
+import requests
 from werkzeug.utils import secure_filename
 from carrito_db import CarritoDB
 from pedidos import Pedidos
@@ -20,7 +23,83 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
            
-           
+
+# =============================================
+# KEEP ALIVE SYSTEM
+# =============================================
+
+@app.route('/health')
+def health_check():
+    """Endpoint simple para health checks - Mantiene activo el servicio"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'TechStore',
+        'timestamp': time.time(),
+        'message': 'Service is running smoothly'
+    }), 200
+
+@app.route('/api/status')
+def status_check():
+    """Endpoint más detallado para monitoreo completo"""
+    try:
+        # Verificar base de datos
+        conn = get_db_connection()
+        db_status = 'connected' if conn else 'disconnected'
+        db_message = 'Database connection successful' if conn else 'Database connection failed'
+        
+        if conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute('SELECT COUNT(*) as total FROM productos')
+            product_count = cursor.fetchone()['total']
+            conn.close()
+        else:
+            product_count = 0
+        
+        return jsonify({
+            'status': 'operational',
+            'database': {
+                'status': db_status,
+                'message': db_message,
+                'product_count': product_count
+            },
+            'timestamp': time.time(),
+            'service': 'TechStore Flask App',
+            'version': '1.0.0'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'degraded',
+            'error': str(e),
+            'timestamp': time.time()
+        }), 500
+
+def start_keep_alive():
+    """Inicia el thread de keep-alive en segundo plano"""
+    def ping_self():
+        # Obtener la URL dinámicamente o usar una por defecto
+        app_url = os.environ.get('RENDER_EXTERNAL_URL', 'https://tu-app.onrender.com')
+        
+        while True:
+            try:
+                response = requests.get(f"{app_url}/health", timeout=10)
+                print(f"✅ Auto-ping exitoso ({response.status_code}): {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            except requests.exceptions.RequestException as e:
+                print(f"❌ Error en auto-ping: {e}")
+            except Exception as e:
+                print(f"⚠️  Error inesperado en keep-alive: {e}")
+            
+            # Esperar 8 minutos (menos de 15 para evitar que se duerma)
+            time.sleep(480)  # 8 minutos
+    
+    # Solo activar en producción (Render)
+    if os.environ.get("RENDER") == "True":
+        thread = threading.Thread(target=ping_self)
+        thread.daemon = True  # Esto hace que el thread se cierre cuando la app principal se cierre
+        thread.start()
+        print("🟢 Keep-alive system activated")
+
+
+
 @app.route('/')
 def index():
     conn = get_db_connection()
@@ -32,7 +111,6 @@ def index():
         conn.close()
     
     return render_template('home.html', productos=productos_destacados)
-
 
 @app.route('/productos')
 def productos():
@@ -773,25 +851,21 @@ def api_detalle_carrito_db():
     """API para obtener detalle del carrito desde BD"""
     carrito = CarritoDB.obtener_carrito_usuario(session['user_id'])
     return jsonify(carrito)
+    
 
+# =============================================
+# INICIALIZACIÓN
+# =============================================
 
-
-
-
-
-
-
-
-
-
+# Crear carpeta de uploads si no existe
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
     print(f"✅ Carpeta creada: {app.config['UPLOAD_FOLDER']}")
-    
 
 if __name__ == "__main__":
-    import os
-
+    # Iniciar sistema de keep-alive
+    start_keep_alive()
+    
     # Detectar si se está ejecutando en Render o localmente
     en_render = os.environ.get("RENDER", "False") == "True"
 
@@ -804,8 +878,10 @@ if __name__ == "__main__":
     # Mensaje informativo
     if en_render:
         print("🌐 Iniciando aplicación Flask en Render (modo producción)")
+        print("🔧 Keep-alive system: ACTIVADO")
     else:
         print("🟢 Iniciando aplicación Flask en modo local (debug activado)")
+        print("🔧 Keep-alive system: DESACTIVADO (modo local)")
 
     # Ejecutar la app
     app.run(host="0.0.0.0", port=port, debug=debug_mode)
